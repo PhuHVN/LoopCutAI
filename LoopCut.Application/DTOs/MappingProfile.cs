@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using LoopCut.Application.DTOs.AccountDtos;
 using LoopCut.Domain.Abstractions;
+using LoopCut.Domain.Entities;
 
 namespace LoopCut.Application.DTOs
 {
@@ -10,6 +12,8 @@ namespace LoopCut.Application.DTOs
             //Config Mapper Paging
             CreateMap(typeof(BasePaginatedList<>), typeof(BasePaginatedList<>))
                 .ConvertUsing(typeof(BasePaginatedListConverter<,>));
+            // Mapping
+            CreateMap<Accounts, AccountResponse>();
 
         }
         public class BasePaginatedListConverter<TSource, TDestination> : ITypeConverter<BasePaginatedList<TSource>, BasePaginatedList<TDestination>>
