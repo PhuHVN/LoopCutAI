@@ -79,7 +79,7 @@ namespace LoopCut.Infrastructure.Implemention
                 _transaction = null;
             }
         }
-        public async Task SaveChangeAsync()
+        public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();
         }

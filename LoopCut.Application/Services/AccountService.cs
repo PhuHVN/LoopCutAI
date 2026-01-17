@@ -24,11 +24,10 @@ namespace LoopCut.Application.Services
             this.mapper = mapper;
 
         }
-
         public async Task<AccountResponse> CreateAccount(AccountRequest account)
         {
-            var existingAccount = await _unitOfWork.GetRepository<Accounts>().FindAsync(x => x.Email.ToLower() == account.Email.ToLower());
-            if(existingAccount != null)
+            var existingAccount = await _unitOfWork.GetRepository<Accounts>().FindAsync(x => x.Email.ToLower() == account.Email.ToLower() && x.Status == StatusEnum.Active);
+            if (existingAccount != null)
             {
                 throw new ArgumentException("Account with the provided email already exists.");
             }
@@ -36,48 +35,80 @@ namespace LoopCut.Application.Services
             var newAccount = new Accounts
             {
                 Email = account.Email,
-                Password =  passwordHashing,
+                Password = passwordHashing,
                 FullName = account.FullName,
                 Address = account.Address,
                 PhoneNumber = account.PhoneNumber,
                 CreatedAt = DateTime.UtcNow,
-                Role = RoleEnum.Customer,
+                Role = RoleEnum.User,
                 Status = StatusEnum.Active
             };
             await _unitOfWork.GetRepository<Accounts>().InsertAsync(newAccount);
-            await _unitOfWork.SaveChangeAsync();
+            await _unitOfWork.SaveChangesAsync();
             return mapper.Map<AccountResponse>(newAccount);
 
         }
 
         public async Task DeleteAccount(string id)
         {
-            var account = await _unitOfWork.GetRepository<Accounts>().GetByIdAsync(id);
-            if(account == null)
+            var account = await _unitOfWork.GetRepository<Accounts>().FindAsync(x => x.Id == id && x.Status == StatusEnum.Active);
+            if (account == null)
             {
                 throw new KeyNotFoundException("Account not found.");
             }
-            await _unitOfWork.GetRepository<Accounts>().DeleteAsync(account);
+            account.Status = StatusEnum.Inactive;
+            await _unitOfWork.GetRepository<Accounts>().UpdateAsync(account);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task<AccountResponse> GetAccountById(string id)
         {
-            var account = await _unitOfWork.GetRepository<Accounts>().GetByIdAsync(id);
-            if(account == null)
+            var account = await _unitOfWork.GetRepository<Accounts>().FindAsync(x => x.Id == id && x.Status == StatusEnum.Active);
+            if (account == null)
             {
                 throw new KeyNotFoundException("Account not found.");
             }
             return mapper.Map<AccountResponse>(account);
         }
 
-        public Task<BasePaginatedList<AccountResponse>> GetAllAccounts()
+        public async Task<BasePaginatedList<AccountResponse>> GetAllAccounts(int pageIndex, int pageSize)
         {
-            throw new NotImplementedException();
+            var query = _unitOfWork.GetRepository<Accounts>().Entity.Where(x => x.Status == StatusEnum.Active).OrderByDescending(x => x.CreatedAt);
+            var rs = await _unitOfWork.GetRepository<Accounts>().GetPagging(query, pageIndex, pageSize);
+            return mapper.Map<BasePaginatedList<AccountResponse>>(rs);
         }
 
-        public Task<AccountResponse> UpdateAccount(AccountRequest account)
+        public async Task<AccountResponse> UpdateAccount(string id, AccountRequest account)
         {
-            throw new NotImplementedException();
+            var existingAccount = await _unitOfWork.GetRepository<Accounts>().FindAsync(x => x.Id == id && x.Status == StatusEnum.Active);
+            if (existingAccount == null)
+            {
+                throw new KeyNotFoundException("Account not found.");
+            }
+            var isUpdate = false;
+            if (!string.IsNullOrEmpty(account.FullName) && existingAccount.FullName != account.FullName)
+            {
+                existingAccount.FullName = account.FullName;
+                isUpdate = true;
+            }
+            if (!string.IsNullOrEmpty(account.Address) && existingAccount.Address != account.Address)
+            {
+                existingAccount.Address = account.Address;
+                isUpdate = true;
+            }
+            if (!string.IsNullOrEmpty(account.PhoneNumber) && existingAccount.PhoneNumber != account.PhoneNumber)
+            {
+                existingAccount.PhoneNumber = account.PhoneNumber;
+                isUpdate = true;
+            }
+            if (isUpdate)
+            {
+                existingAccount.LastUpdatedAt = DateTime.UtcNow;
+                await _unitOfWork.GetRepository<Accounts>().UpdateAsync(existingAccount);
+                await _unitOfWork.SaveChangesAsync();
+            }
+            return mapper.Map<AccountResponse>(existingAccount);
+
         }
     }
 }

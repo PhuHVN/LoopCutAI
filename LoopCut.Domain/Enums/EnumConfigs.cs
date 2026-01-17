@@ -11,8 +11,8 @@ namespace LoopCut.Domain.Enums
     {
         [Display(Name = "Admin")]
         Admin,
-        [Display(Name = "Customer")]
-        Customer 
+        [Display(Name = "User")]
+        User 
     }
     public enum StatusEnum
     {
