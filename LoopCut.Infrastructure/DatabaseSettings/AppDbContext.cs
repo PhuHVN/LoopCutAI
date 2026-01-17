@@ -26,5 +26,5 @@ namespace LoopCut.Infrastructure.DatabaseSettings
         }
     }
 }
-//dotnet ef migrations add AddAccountTable -p ShuppeMarket.Infrastructure -s ShuppeMarket.Api
-//dotnet ef database update -p ShuppeMarket.Infrastructure -s ShuppeMarket.Api
+//dotnet ef migrations add AddAccountTable -p LoopCut.Infrastructure -s LoopCut.Api
+//dotnet ef database update -p LoopCut.Infrastructure -s LoopCut.Api
