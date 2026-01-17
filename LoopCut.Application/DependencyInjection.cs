@@ -11,6 +11,10 @@ namespace LoopCut.Application
         {
             // Application service registrations go here
             services.AddScoped<IAccountService, AccountService>();
+            services.AddScoped<IAuthService, AuthService>();
+
+
+
             services.AddValidatorsFromAssemblyContaining(typeof(DependencyInjection));
         }
 

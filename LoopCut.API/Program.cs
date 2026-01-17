@@ -1,6 +1,10 @@
+using AutoMapper;
 using LoopCut.API;
 using LoopCut.API.Middleware;
+using LoopCut.Application.DTOs;
+using LoopCut.Domain.Enums.EnumConfig;
 using LoopCut.Infrastructure.DatabaseSettings;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -9,6 +13,13 @@ using System.Security.Claims;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
+
+//convert enum to string in json
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(
+        new ExclusiveEnumConverterFactory(excludeFromString: new[] { typeof(StatusCodeHelper) }));
+});
 
 //Cors
 builder.Services.AddCors(options =>
@@ -54,16 +65,23 @@ builder.Services.AddSwaggerGen(option =>
 //Jwt Authentication
 builder.Services.AddAuthentication(options =>
 {
-   options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme,options =>
+}).AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
+{
+    var googleSection = builder.Configuration.GetSection("Authentication:Google");
+    options.ClientId = googleSection["ClientId"];
+    options.ClientSecret = googleSection["ClientSecret"];
+    options.CallbackPath = "/auth/google/callback";
+})
+    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
 {
     var jwtSettings = builder.Configuration.GetSection("Jwt");
     options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
     {
         ValidateIssuer = true,
         ValidateAudience = true,
-        ValidateLifetime =  true,
+        ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         ValidIssuer = jwtSettings["Issuer"],
         ValidAudience = jwtSettings["Audience"],
@@ -138,15 +156,22 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-
+//config AutoMapper
+var mapperConfig = new MapperConfiguration(cfg =>
+{
+    cfg.AddProfile<MappingProfile>();
+});
+IMapper mapper = mapperConfig.CreateMapper();
+builder.Services.AddSingleton(mapper);
 
 // Add services to the container.
 builder.Services.AddControllers();
 //Add Dependency Injection
 builder.Services.AddConfig(builder.Configuration);
-
+builder.Services.AddHttpContextAccessor();
 //Entity Framework + SQL Server
-builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<AppDbContext>(options
+    => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 

@@ -1,6 +1,10 @@
-﻿using LoopCut.Application.Interfaces;
+﻿using LoopCut.Application.DTOs;
+using LoopCut.Application.DTOs.AccountDtos;
+using LoopCut.Application.Interfaces;
+using LoopCut.Domain.Abstractions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace LoopCut.API.Controllers
 {
@@ -15,34 +19,37 @@ namespace LoopCut.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateAccount()
+        [SwaggerOperation(Summary = "Create a new account", Description = "Creates a new user account with the provided details.")]
+        public async Task<IActionResult> CreateAccount(AccountRequest account)
         {
-            // Implementation for creating an account
-            return Ok();
+            var result = await _accountService.CreateAccount(account);
+            return Ok(ApiResponse<AccountResponse>.OkResponse(result,"Create account successful!","201"));
         }
-        [HttpGet]
+        [HttpGet("{id}")]
+        [SwaggerOperation(Summary = "Get account by ID", Description = "Retrieves the account details for the specified account ID.")]
         public async Task<IActionResult> GetAccountById(string id)
         {
-            // Implementation for getting an account by ID
-            return Ok();
+            var result = await _accountService.GetAccountById(id);
+            return Ok(ApiResponse<AccountResponse>.OkResponse(result,"Get account successful!","200"));
         }
-        [HttpGet("all")]
-        public async Task<IActionResult> GetAllAccounts()
+        [HttpGet()]
+        [SwaggerOperation(Summary = "Get all accounts", Description = "Retrieves a list of all user accounts.")]
+        public async Task<IActionResult> GetAllAccounts(int pageIndex = 1, int pageSize = 10)
         {
-            // Implementation for getting all accounts
-            return Ok();
+            var result = await _accountService.GetAllAccounts(pageIndex, pageSize);
+            return Ok(ApiResponse<BasePaginatedList<AccountResponse>>.OkResponse(result,"Get all accounts successful!","200"));
         }
-        [HttpPut]
-        public async Task<IActionResult> UpdateAccount()
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateAccount(string id, AccountRequest account)
         {
-            // Implementation for updating an account
-            return Ok();
+            var result = await _accountService.UpdateAccount(id, account);
+            return Ok(ApiResponse<AccountResponse>.OkResponse(result,"Update account successful!","200"));
         }
-        [HttpDelete]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAccount(string id)
         {
-            // Implementation for deleting an account
-            return Ok();
+            await _accountService.DeleteAccount(id);
+            return NoContent();
         }
     }
 }
