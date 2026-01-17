@@ -1,4 +1,5 @@
 using LoopCut.API;
+using LoopCut.API.Middleware;
 using LoopCut.Infrastructure.DatabaseSettings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -156,6 +157,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
