@@ -56,5 +56,19 @@ namespace LoopCut.API.Controllers
             var result = await _service.UpdateMembershipToUser(request);
             return Ok(ApiResponse<UserMembershipResponse>.OkResponse(result, "User membership updated successfully", "200"));
         }
+        [HttpPost("renew_membership")]
+        [SwaggerOperation(Summary = "Renew a user's membership")]
+        public async Task<IActionResult> RenewUserMembership([FromBody] RenewRequest renew)
+        {
+            var result = await _service.RenewMembershipToUser(renew);
+            return Ok(ApiResponse<UserMembershipResponse>.OkResponse(result, "User membership renewed successfully", "200"));
+        }
+        [HttpGet("active_membership/{userId}")]
+        [SwaggerOperation(Summary = "Get active membership details for a user")]
+        public async Task<IActionResult> GetActiveMembershipByUserId(string userId)
+        {
+            var result = await _service.GetActiveMembershipByUserId(userId);
+            return Ok(ApiResponse<UserMembershipDetail>.OkResponse(result, "Active membership details retrieved successfully", "200"));
+        }
     }
 }

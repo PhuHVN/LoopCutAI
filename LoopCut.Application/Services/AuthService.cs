@@ -40,7 +40,7 @@ namespace LoopCut.Application.Services
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.UTF8.GetBytes(_configuration["Jwt:SecretKey"]);
+                var key = Encoding.UTF8.GetBytes(_configuration!["Jwt:SecretKey"]);
                 var account = await _unitOfWork.GetRepository<Accounts>().FindAsync(x => x.Id == accounts.Id && x.Status == StatusEnum.Active);
                 if (account == null)
                 {
