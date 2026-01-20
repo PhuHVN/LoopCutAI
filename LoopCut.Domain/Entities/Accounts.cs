@@ -23,5 +23,7 @@ namespace LoopCut.Domain.Entities
         public DateTime? LastUpdatedAt { get; set; }
         public RoleEnum Role { get; set; } 
         public StatusEnum Status { get; set; } = StatusEnum.Active;
+        //Navigation Properties
+        public ICollection<UserMembership> UserMemberships { get; set; } = new List<UserMembership>();
     }
 }

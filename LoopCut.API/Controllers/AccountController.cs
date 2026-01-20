@@ -10,10 +10,10 @@ namespace LoopCut.API.Controllers
 {
     [Route("api/v1/accounts")]
     [ApiController]
-    public class AccountService : ControllerBase
+    public class AccountController : ControllerBase
     {
         private readonly IAccountService _accountService;
-        public AccountService(IAccountService accountService)
+        public AccountController(IAccountService accountService)
         {
             _accountService = accountService;
         }

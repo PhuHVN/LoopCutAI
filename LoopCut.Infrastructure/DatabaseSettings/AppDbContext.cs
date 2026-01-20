@@ -15,6 +15,8 @@ namespace LoopCut.Infrastructure.DatabaseSettings
         }
         //DbSets 
         public DbSet<Accounts> Accounts { get; set; }
+        public DbSet<Membership> Memberships { get; set; }
+        public DbSet<UserMembership> UserMemberships { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -22,7 +24,18 @@ namespace LoopCut.Infrastructure.DatabaseSettings
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
             // Model configurations go here
 
-            
+            modelBuilder.Entity<Accounts>().ToTable("users");
+
+            modelBuilder.Entity<Membership>(e =>
+            {
+                e.ToTable("memberships");
+                e.HasIndex(x => x.Code).IsUnique();
+            });
+
+            modelBuilder.Entity<UserMembership>(e =>
+            {
+                e.ToTable("user_memberships");
+            });
         }
     }
 }
