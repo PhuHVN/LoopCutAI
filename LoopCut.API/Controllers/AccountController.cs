@@ -40,12 +40,14 @@ namespace LoopCut.API.Controllers
             return Ok(ApiResponse<BasePaginatedList<AccountResponse>>.OkResponse(result,"Get all accounts successful!","200"));
         }
         [HttpPut("{id}")]
+        [SwaggerOperation(Summary = "Update account", Description = "Updates the details of an existing user account.")]
         public async Task<IActionResult> UpdateAccount(string id, AccountRequest account)
         {
             var result = await _accountService.UpdateAccount(id, account);
             return Ok(ApiResponse<AccountResponse>.OkResponse(result,"Update account successful!","200"));
         }
         [HttpDelete("{id}")]
+        [SwaggerOperation(Summary = "Delete account", Description = "Deletes the user account with the specified ID.")]
         public async Task<IActionResult> DeleteAccount(string id)
         {
             await _accountService.DeleteAccount(id);

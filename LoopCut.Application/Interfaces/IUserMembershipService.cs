@@ -15,6 +15,7 @@ namespace LoopCut.Application.Interfaces
         Task<UserMembershipResponse> ActiveMembershipFromUser(string userId, string membershipId);
         Task<BasePaginatedList<UserMembershipResponse>> GetUserMemberships(int pageIndex,int pageSize);
         Task<UserMembershipResponse> UpdateMembershipToUser(UserMembershipRequest request);
-
+        Task<UserMembershipResponse> RenewMembershipToUser(RenewRequest renew);
+        Task<UserMembershipDetail> GetActiveMembershipByUserId(string userId);
     }
 }
