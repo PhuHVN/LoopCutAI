@@ -20,4 +20,10 @@ namespace LoopCut.Domain.Enums
         Active = 1,
     }
 
+    public enum MembershipStatusEnum
+    {
+        Expired = 0,
+        Active = 1,
+    }
+
 }
