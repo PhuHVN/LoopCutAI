@@ -25,5 +25,13 @@ namespace LoopCut.Domain.Entities
         public StatusEnum Status { get; set; } = StatusEnum.Active;
         //Navigation Properties
         public ICollection<UserMembership> UserMemberships { get; set; } = new List<UserMembership>();
+
+        // List Subcriptions
+        public ICollection<Subcriptions> Subcriptions { get; set; } = new List<Subcriptions>();
+
+        // List Services modified
+        public ICollection<Services> ModifiedServices { get; set; } = new List<Services>();
+        // List ServicePlans modified
+        public ICollection<ServicePlans> ModifiedServicePlans { get; set; } = new List<ServicePlans>();
     }
 }
