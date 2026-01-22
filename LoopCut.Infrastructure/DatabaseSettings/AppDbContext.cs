@@ -18,7 +18,7 @@ namespace LoopCut.Infrastructure.DatabaseSettings
         public DbSet<Membership> Memberships { get; set; }
         public DbSet<UserMembership> UserMemberships { get; set; }
 
-        public DbSet<Subcriptions> Subcriptions { get; set; }
+        public DbSet<Subscriptions> Subcriptions { get; set; }
 
         public DbSet<ServicePlans> ServicePlans { get; set; }
 

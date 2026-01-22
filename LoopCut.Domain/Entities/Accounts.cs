@@ -27,7 +27,7 @@ namespace LoopCut.Domain.Entities
         public ICollection<UserMembership> UserMemberships { get; set; } = new List<UserMembership>();
 
         // List Subcriptions
-        public ICollection<Subcriptions> Subcriptions { get; set; } = new List<Subcriptions>();
+        public ICollection<Subscriptions> Subcriptions { get; set; } = new List<Subscriptions>();
 
         // List Services modified
         public ICollection<Services> ModifiedServices { get; set; } = new List<Services>();
