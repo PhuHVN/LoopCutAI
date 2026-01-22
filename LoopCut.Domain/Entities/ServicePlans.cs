@@ -23,6 +23,6 @@ namespace LoopCut.Domain.Entities
 
         public required Services Services { get; set; }
 
-        public ICollection<Subcriptions> Subcriptions { get; set; } = new List<Subcriptions>();
+        public ICollection<Subscriptions> Subcriptions { get; set; } = new List<Subscriptions>();
     }
 }

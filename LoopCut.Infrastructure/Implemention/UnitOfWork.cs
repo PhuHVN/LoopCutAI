@@ -1,11 +1,8 @@
 ﻿using LoopCut.Domain.Abstractions;
+using LoopCut.Domain.IRepository;
 using LoopCut.Infrastructure.DatabaseSettings;
 using Microsoft.EntityFrameworkCore.Storage;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace LoopCut.Infrastructure.Implemention
 {
@@ -15,10 +12,24 @@ namespace LoopCut.Infrastructure.Implemention
         private IDbContextTransaction? _transaction;
         private Dictionary<Type, object> repositories;
 
-        public UnitOfWork(AppDbContext context)
+        public IAccountRepository AccountRepository { get; private set; }
+        public IServicePlanRepository ServicePlanRepository { get; private set; }
+        public IServiceRepository ServiceRepository { get; private set; }
+        public ISubscriptionRepository SubscriptionRepository { get; private set; }
+
+        public UnitOfWork(
+            AppDbContext context, 
+            IAccountRepository accountRepository,
+            IServicePlanRepository servicePlanRepository,
+            IServiceRepository serviceRepository,
+            ISubscriptionRepository subscriptionRepository)
         {
             _context = context;
             repositories = new Dictionary<Type, object>();
+            AccountRepository = accountRepository;
+            ServicePlanRepository = servicePlanRepository;
+            ServiceRepository = serviceRepository;
+            SubscriptionRepository = subscriptionRepository;
         }
         public async Task BeginTransactionAsync()
         {

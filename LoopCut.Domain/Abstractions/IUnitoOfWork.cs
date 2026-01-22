@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using LoopCut.Domain.IRepository;
 
 namespace LoopCut.Domain.Abstractions
 {
@@ -14,5 +10,12 @@ namespace LoopCut.Domain.Abstractions
         Task CommitTransactionAsync();
         Task RollBackAsync();
         bool HasActiveTransaction();
+
+
+        // Interface Repository Pattern
+        public IAccountRepository AccountRepository { get; }
+        public IServicePlanRepository ServicePlanRepository { get; }
+        public IServiceRepository ServiceRepository { get; }
+        public ISubscriptionRepository SubscriptionRepository { get; }
     }
 }

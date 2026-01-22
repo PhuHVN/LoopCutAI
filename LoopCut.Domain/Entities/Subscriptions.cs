@@ -2,7 +2,7 @@ using LoopCut.Domain.Enums;
 
 namespace LoopCut.Domain.Entities;
 
-public class Subcriptions
+public class Subscriptions
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();
     public string AccountId { get; set; } = string.Empty;

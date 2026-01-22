@@ -168,7 +168,7 @@ namespace LoopCut.Infrastructure.Migrations
                     b.ToTable("Services");
                 });
 
-            modelBuilder.Entity("LoopCut.Domain.Entities.Subcriptions", b =>
+            modelBuilder.Entity("LoopCut.Domain.Entities.Subscriptions", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("text");
@@ -278,7 +278,7 @@ namespace LoopCut.Infrastructure.Migrations
                     b.Navigation("ModifiedBy");
                 });
 
-            modelBuilder.Entity("LoopCut.Domain.Entities.Subcriptions", b =>
+            modelBuilder.Entity("LoopCut.Domain.Entities.Subscriptions", b =>
                 {
                     b.HasOne("LoopCut.Domain.Entities.Accounts", "Account")
                         .WithMany("Subcriptions")
