@@ -1,6 +1,8 @@
 ﻿using LoopCut.Application.DTOs.ServiceDTO;
 using LoopCut.Application.Interfaces;
 using LoopCut.Domain.Abstractions;
+using LoopCut.Domain.Entities;
+using LoopCut.Domain.Enums;
 using Microsoft.Extensions.Logging;
 
 namespace LoopCut.Application.Services
@@ -9,21 +11,37 @@ namespace LoopCut.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<ServiceDefinitionManager> _logger;
-        private readonly IAccountService _accountService;
+        private readonly IAuthService _accountService;
 
         public ServiceDefinitionManager(
             IUnitOfWork unitOfWork, 
             ILogger<ServiceDefinitionManager> logger, 
-            IAccountService accountService)
+            IAuthService accountService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _accountService = accountService;
         }
 
-        public Task<ServiceResponse> CreateService(ServiceRequestV1 serviceRequest)
+        public async Task<ServiceResponse> CreateService(ServiceRequestV1 serviceRequest)
         {
+            // Get user form context
+            var user = await _accountService.CurrentUser();
+            var existingUser = await _unitOfWork.AccountRepository.GetByIdAsync(user.Id) 
+                ?? throw new ArgumentException("User not found");
+
             // 1. Map ServiceRequestV1 to Service entity
+            var service = new ServiceDefinitions
+            {
+                Name = serviceRequest.Name,
+                Description = serviceRequest.Description,
+                LogoUrl = serviceRequest.LogoUrl,
+                CreatedAt = DateTime.UtcNow,
+                Status = ServiceEnums.Active,
+                ModifiedByID = existingUser.Id,
+                ModifiedBy = existingUser
+
+            };
 
             // 2. Start transaction
 

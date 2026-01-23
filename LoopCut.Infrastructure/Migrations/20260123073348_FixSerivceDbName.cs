@@ -57,7 +57,8 @@ namespace LoopCut.Infrastructure.Migrations
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     LastUpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     Status = table.Column<int>(type: "integer", nullable: false),
-                    ModifiedByID = table.Column<string>(type: "text", nullable: true)
+                    ModifiedByID = table.Column<string>(type: "text", nullable: true),
+                    ModifiedById = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -65,6 +66,11 @@ namespace LoopCut.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_Services_users_ModifiedByID",
                         column: x => x.ModifiedByID,
+                        principalTable: "users",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Services_users_ModifiedById",
+                        column: x => x.ModifiedById,
                         principalTable: "users",
                         principalColumn: "Id");
                 });
@@ -104,7 +110,7 @@ namespace LoopCut.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
-                    ServiceId = table.Column<string>(type: "text", nullable: false),
+                    ServiceDefinitionId = table.Column<string>(type: "text", nullable: false),
                     ModifiedByID = table.Column<string>(type: "text", nullable: true),
                     PlanName = table.Column<string>(type: "text", nullable: false),
                     Price = table.Column<double>(type: "double precision", nullable: false),
@@ -112,19 +118,25 @@ namespace LoopCut.Infrastructure.Migrations
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     LastUpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     status = table.Column<int>(type: "integer", nullable: false),
-                    ServicesId = table.Column<string>(type: "text", nullable: true)
+                    ModifiedById = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ServicePlans", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ServicePlans_Services_ServicesId",
-                        column: x => x.ServicesId,
+                        name: "FK_ServicePlans_Services_ServiceDefinitionId",
+                        column: x => x.ServiceDefinitionId,
                         principalTable: "Services",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_ServicePlans_users_ModifiedByID",
                         column: x => x.ModifiedByID,
+                        principalTable: "users",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_ServicePlans_users_ModifiedById",
+                        column: x => x.ModifiedById,
                         principalTable: "users",
                         principalColumn: "Id");
                 });
@@ -143,15 +155,14 @@ namespace LoopCut.Infrastructure.Migrations
                     RemiderDays = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     LastUpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    ServicePlansId = table.Column<string>(type: "text", nullable: true)
+                    Status = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Subcriptions", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Subcriptions_ServicePlans_ServicePlansId",
-                        column: x => x.ServicePlansId,
+                        name: "FK_Subcriptions_ServicePlans_ServicePlanId",
+                        column: x => x.ServicePlanId,
                         principalTable: "ServicePlans",
                         principalColumn: "Id");
                     table.ForeignKey(
@@ -169,14 +180,24 @@ namespace LoopCut.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_ServicePlans_ModifiedById",
+                table: "ServicePlans",
+                column: "ModifiedById");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ServicePlans_ModifiedByID",
                 table: "ServicePlans",
                 column: "ModifiedByID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ServicePlans_ServicesId",
+                name: "IX_ServicePlans_ServiceDefinitionId",
                 table: "ServicePlans",
-                column: "ServicesId");
+                column: "ServiceDefinitionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Services_ModifiedById",
+                table: "Services",
+                column: "ModifiedById");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Services_ModifiedByID",
@@ -189,9 +210,9 @@ namespace LoopCut.Infrastructure.Migrations
                 column: "AccountId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Subcriptions_ServicePlansId",
+                name: "IX_Subcriptions_ServicePlanId",
                 table: "Subcriptions",
-                column: "ServicePlansId");
+                column: "ServicePlanId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_user_memberships_MembershipId",
