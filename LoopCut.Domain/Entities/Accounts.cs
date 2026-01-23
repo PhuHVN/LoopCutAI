@@ -30,7 +30,7 @@ namespace LoopCut.Domain.Entities
         public ICollection<Subscriptions> Subcriptions { get; set; } = new List<Subscriptions>();
 
         // List Services modified
-        public ICollection<Services> ModifiedServices { get; set; } = new List<Services>();
+        public ICollection<ServiceDefinitions> ModifiedServices { get; set; } = new List<ServiceDefinitions>();
         // List ServicePlans modified
         public ICollection<ServicePlans> ModifiedServicePlans { get; set; } = new List<ServicePlans>();
     }

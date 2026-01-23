@@ -23,7 +23,7 @@ namespace LoopCut.Domain.Entities
         // Navigation Properties
         public required Accounts? ModifiedBy { get; set; }
 
-        public required Services Services { get; set; }
+        public required ServiceDefinitions Services { get; set; }
 
         public ICollection<Subscriptions> Subcriptions { get; set; } = new List<Subscriptions>();
     }

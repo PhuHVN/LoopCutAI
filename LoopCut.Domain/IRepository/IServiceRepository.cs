@@ -3,7 +3,7 @@ using LoopCut.Domain.Entities;
 
 namespace LoopCut.Domain.IRepository
 {
-    public interface IServiceRepository : IGenericRepository<Services>
+    public interface IServiceRepository : IGenericRepository<ServiceDefinitions>
     {
     }
 }

@@ -22,7 +22,7 @@ namespace LoopCut.Infrastructure.DatabaseSettings
 
         public DbSet<ServicePlans> ServicePlans { get; set; }
 
-        public DbSet<Services> Services { get; set; }
+        public DbSet<ServiceDefinitions> Services { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

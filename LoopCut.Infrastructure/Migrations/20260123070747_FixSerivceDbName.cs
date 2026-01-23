@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace LoopCut.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class SubcriptionFeature : Migration
+    public partial class FixSerivceDbName : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
