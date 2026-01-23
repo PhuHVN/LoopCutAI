@@ -5,7 +5,7 @@ using LoopCut.Infrastructure.Implemention;
 
 namespace LoopCut.Infrastructure.Repository
 {
-    public class ServiceRepository : GenericRepository<Services>, IServiceRepository
+    public class ServiceRepository : GenericRepository<ServiceDefinitions>, IServiceRepository
     {
         public ServiceRepository(AppDbContext appDb) : base(appDb)
         {

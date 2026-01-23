@@ -2,7 +2,7 @@ using LoopCut.Domain.Enums;
 
 namespace LoopCut.Domain.Entities;
 
-public class Services
+public class ServiceDefinitions
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();
     public string Name { get; set; } = string.Empty;

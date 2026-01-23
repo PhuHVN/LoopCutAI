@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LoopCut.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260123065945_SubcriptionFeature")]
-    partial class SubcriptionFeature
+    [Migration("20260123070747_FixSerivceDbName")]
+    partial class FixSerivceDbName
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -95,6 +95,42 @@ namespace LoopCut.Infrastructure.Migrations
                     b.ToTable("memberships", (string)null);
                 });
 
+            modelBuilder.Entity("LoopCut.Domain.Entities.ServiceDefinitions", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("LastUpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LogoUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ModifiedByID")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ModifiedByID");
+
+                    b.ToTable("Services");
+                });
+
             modelBuilder.Entity("LoopCut.Domain.Entities.ServicePlans", b =>
                 {
                     b.Property<string>("Id")
@@ -136,42 +172,6 @@ namespace LoopCut.Infrastructure.Migrations
                     b.HasIndex("ServicesId");
 
                     b.ToTable("ServicePlans");
-                });
-
-            modelBuilder.Entity("LoopCut.Domain.Entities.Services", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("LastUpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("LogoUrl")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ModifiedByID")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ModifiedByID");
-
-                    b.ToTable("Services");
                 });
 
             modelBuilder.Entity("LoopCut.Domain.Entities.Subscriptions", b =>
@@ -260,28 +260,28 @@ namespace LoopCut.Infrastructure.Migrations
                     b.ToTable("user_memberships", (string)null);
                 });
 
-            modelBuilder.Entity("LoopCut.Domain.Entities.ServicePlans", b =>
-                {
-                    b.HasOne("LoopCut.Domain.Entities.Accounts", "ModifiedBy")
-                        .WithMany("ModifiedServicePlans")
-                        .HasForeignKey("ModifiedByID");
-
-                    b.HasOne("LoopCut.Domain.Entities.Services", "Services")
-                        .WithMany("ServicePlans")
-                        .HasForeignKey("ServicesId");
-
-                    b.Navigation("ModifiedBy");
-
-                    b.Navigation("Services");
-                });
-
-            modelBuilder.Entity("LoopCut.Domain.Entities.Services", b =>
+            modelBuilder.Entity("LoopCut.Domain.Entities.ServiceDefinitions", b =>
                 {
                     b.HasOne("LoopCut.Domain.Entities.Accounts", "ModifiedBy")
                         .WithMany("ModifiedServices")
                         .HasForeignKey("ModifiedByID");
 
                     b.Navigation("ModifiedBy");
+                });
+
+            modelBuilder.Entity("LoopCut.Domain.Entities.ServicePlans", b =>
+                {
+                    b.HasOne("LoopCut.Domain.Entities.Accounts", "ModifiedBy")
+                        .WithMany("ModifiedServicePlans")
+                        .HasForeignKey("ModifiedByID");
+
+                    b.HasOne("LoopCut.Domain.Entities.ServiceDefinitions", "Services")
+                        .WithMany("ServicePlans")
+                        .HasForeignKey("ServicesId");
+
+                    b.Navigation("ModifiedBy");
+
+                    b.Navigation("Services");
                 });
 
             modelBuilder.Entity("LoopCut.Domain.Entities.Subscriptions", b =>
@@ -336,14 +336,14 @@ namespace LoopCut.Infrastructure.Migrations
                     b.Navigation("UserMemberships");
                 });
 
+            modelBuilder.Entity("LoopCut.Domain.Entities.ServiceDefinitions", b =>
+                {
+                    b.Navigation("ServicePlans");
+                });
+
             modelBuilder.Entity("LoopCut.Domain.Entities.ServicePlans", b =>
                 {
                     b.Navigation("Subcriptions");
-                });
-
-            modelBuilder.Entity("LoopCut.Domain.Entities.Services", b =>
-                {
-                    b.Navigation("ServicePlans");
                 });
 #pragma warning restore 612, 618
         }

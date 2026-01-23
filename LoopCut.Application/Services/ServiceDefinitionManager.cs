@@ -23,6 +23,17 @@ namespace LoopCut.Application.Services
 
         public Task<ServiceResponse> CreateService(ServiceRequestV1 serviceRequest)
         {
+            // 1. Map ServiceRequestV1 to Service entity
+
+            // 2. Start transaction
+
+            // 3. Save Service entity to database
+
+            // 4. Check if ServicePlans are provided in the request
+
+            // 5. Map and save each ServicePlan entity to database
+
+            // 6. Commit transaction
             throw new NotImplementedException();
         }
 
