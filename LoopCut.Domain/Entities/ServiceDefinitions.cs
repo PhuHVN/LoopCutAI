@@ -14,7 +14,7 @@ public class ServiceDefinitions
     public string? ModifiedByID { get; set; }
 
     // Navigation Properties
-    public required Accounts? ModifiedBy { get; set; }
+    public  Accounts? ModifiedBy { get; set; }
 
     public ICollection<ServicePlans> ServicePlans { get; set; } = new List<ServicePlans>();
 }

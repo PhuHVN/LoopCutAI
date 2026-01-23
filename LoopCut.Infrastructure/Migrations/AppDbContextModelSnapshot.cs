@@ -114,6 +114,9 @@ namespace LoopCut.Infrastructure.Migrations
                     b.Property<string>("ModifiedByID")
                         .HasColumnType("text");
 
+                    b.Property<string>("ModifiedById")
+                        .HasColumnType("text");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
@@ -124,6 +127,8 @@ namespace LoopCut.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ModifiedByID");
+
+                    b.HasIndex("ModifiedById");
 
                     b.ToTable("Services");
                 });
@@ -145,6 +150,9 @@ namespace LoopCut.Infrastructure.Migrations
                     b.Property<string>("ModifiedByID")
                         .HasColumnType("text");
 
+                    b.Property<string>("ModifiedById")
+                        .HasColumnType("text");
+
                     b.Property<string>("PlanName")
                         .IsRequired()
                         .HasColumnType("text");
@@ -152,11 +160,8 @@ namespace LoopCut.Infrastructure.Migrations
                     b.Property<double>("Price")
                         .HasColumnType("double precision");
 
-                    b.Property<string>("ServiceId")
+                    b.Property<string>("ServiceDefinitionId")
                         .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ServicesId")
                         .HasColumnType("text");
 
                     b.Property<int>("status")
@@ -166,7 +171,9 @@ namespace LoopCut.Infrastructure.Migrations
 
                     b.HasIndex("ModifiedByID");
 
-                    b.HasIndex("ServicesId");
+                    b.HasIndex("ModifiedById");
+
+                    b.HasIndex("ServiceDefinitionId");
 
                     b.ToTable("ServicePlans");
                 });
@@ -198,9 +205,6 @@ namespace LoopCut.Infrastructure.Migrations
                     b.Property<string>("ServicePlanId")
                         .HasColumnType("text");
 
-                    b.Property<string>("ServicePlansId")
-                        .HasColumnType("text");
-
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -215,7 +219,7 @@ namespace LoopCut.Infrastructure.Migrations
 
                     b.HasIndex("AccountId");
 
-                    b.HasIndex("ServicePlansId");
+                    b.HasIndex("ServicePlanId");
 
                     b.ToTable("Subcriptions");
                 });
@@ -259,26 +263,36 @@ namespace LoopCut.Infrastructure.Migrations
 
             modelBuilder.Entity("LoopCut.Domain.Entities.ServiceDefinitions", b =>
                 {
-                    b.HasOne("LoopCut.Domain.Entities.Accounts", "ModifiedBy")
+                    b.HasOne("LoopCut.Domain.Entities.Accounts", null)
                         .WithMany("ModifiedServices")
                         .HasForeignKey("ModifiedByID");
+
+                    b.HasOne("LoopCut.Domain.Entities.Accounts", "ModifiedBy")
+                        .WithMany()
+                        .HasForeignKey("ModifiedById");
 
                     b.Navigation("ModifiedBy");
                 });
 
             modelBuilder.Entity("LoopCut.Domain.Entities.ServicePlans", b =>
                 {
-                    b.HasOne("LoopCut.Domain.Entities.Accounts", "ModifiedBy")
+                    b.HasOne("LoopCut.Domain.Entities.Accounts", null)
                         .WithMany("ModifiedServicePlans")
                         .HasForeignKey("ModifiedByID");
 
-                    b.HasOne("LoopCut.Domain.Entities.ServiceDefinitions", "Services")
+                    b.HasOne("LoopCut.Domain.Entities.Accounts", "ModifiedBy")
+                        .WithMany()
+                        .HasForeignKey("ModifiedById");
+
+                    b.HasOne("LoopCut.Domain.Entities.ServiceDefinitions", "ServiceDefinition")
                         .WithMany("ServicePlans")
-                        .HasForeignKey("ServicesId");
+                        .HasForeignKey("ServiceDefinitionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("ModifiedBy");
 
-                    b.Navigation("Services");
+                    b.Navigation("ServiceDefinition");
                 });
 
             modelBuilder.Entity("LoopCut.Domain.Entities.Subscriptions", b =>
@@ -289,13 +303,13 @@ namespace LoopCut.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("LoopCut.Domain.Entities.ServicePlans", "ServicePlans")
+                    b.HasOne("LoopCut.Domain.Entities.ServicePlans", "ServicePlan")
                         .WithMany("Subcriptions")
-                        .HasForeignKey("ServicePlansId");
+                        .HasForeignKey("ServicePlanId");
 
                     b.Navigation("Account");
 
-                    b.Navigation("ServicePlans");
+                    b.Navigation("ServicePlan");
                 });
 
             modelBuilder.Entity("LoopCut.Domain.Entities.UserMembership", b =>

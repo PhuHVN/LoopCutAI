@@ -17,7 +17,7 @@ public class Subscriptions
     public SubscriptionEnums Status { get; set; } = SubscriptionEnums.Active;
 
     // Navigation Properties
-    public required Accounts? Account { get; set; }
+    public required Accounts Account { get; set; }
 
-    public ServicePlans? ServicePlans { get; set; }
+    public ServicePlans? ServicePlan { get; set; }
 }

@@ -5,7 +5,7 @@ namespace LoopCut.Domain.Entities
     public class ServicePlans
     {
         public string Id { get; set; } = Guid.NewGuid().ToString();
-        public required string ServiceId { get; set; }
+        public required string ServiceDefinitionId { get; set; }
         public string? ModifiedByID { get; set; }
 
         public string PlanName { get; set; } = string.Empty;
@@ -21,9 +21,9 @@ namespace LoopCut.Domain.Entities
         public ServicePlanEnums status { get; set; } = ServicePlanEnums.Active;
 
         // Navigation Properties
-        public required Accounts? ModifiedBy { get; set; }
+        public Accounts? ModifiedBy { get; set; }
 
-        public required ServiceDefinitions Services { get; set; }
+        public required ServiceDefinitions ServiceDefinition { get; set; }
 
         public ICollection<Subscriptions> Subcriptions { get; set; } = new List<Subscriptions>();
     }

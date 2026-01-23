@@ -42,6 +42,21 @@ namespace LoopCut.Infrastructure.DatabaseSettings
             {
                 e.ToTable("user_memberships");
             });
+
+            modelBuilder.Entity<ServicePlans>(e =>
+            {
+                e.HasOne<Accounts>()
+                 .WithMany(a => a.ModifiedServicePlans)
+                 .HasForeignKey(s => s.ModifiedByID);
+            });
+
+            modelBuilder.Entity<ServiceDefinitions>(e =>
+            {
+                e.HasOne<Accounts>()
+                 .WithMany(a => a.ModifiedServices)
+                 .HasForeignKey(s => s.ModifiedByID);
+            });
+
         }
     }
 }
