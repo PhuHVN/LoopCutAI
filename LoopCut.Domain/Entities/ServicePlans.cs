@@ -17,6 +17,8 @@ namespace LoopCut.Domain.Entities
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? LastUpdatedAt { get; set; }
+        
+        public ServicePlanEnums status { get; set; } = ServicePlanEnums.Active;
 
         // Navigation Properties
         public required Accounts? ModifiedBy { get; set; }
