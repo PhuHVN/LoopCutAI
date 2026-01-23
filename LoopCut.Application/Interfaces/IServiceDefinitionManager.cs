@@ -9,5 +9,7 @@ namespace LoopCut.Application.Interfaces
         Task<ServiceResponse> UpdateService(string id, ServiceRequestV1 serviceRequest);
         Task<ServiceResponse> GetServiceById(string id);
         Task DeleteService(string id);
+
+        Task<BasePaginatedList<ServiceResponse>> GetAllServices(int pageIndex, int pageSize, string? name);
     }
 }
