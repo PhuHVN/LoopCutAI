@@ -123,6 +123,9 @@ namespace LoopCut.Infrastructure.Migrations
                     b.Property<string>("ServicesId")
                         .HasColumnType("text");
 
+                    b.Property<int>("status")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ModifiedByID");

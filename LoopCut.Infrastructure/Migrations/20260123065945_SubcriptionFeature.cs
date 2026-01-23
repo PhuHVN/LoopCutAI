@@ -111,6 +111,7 @@ namespace LoopCut.Infrastructure.Migrations
                     BillingCycleEnums = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     LastUpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    status = table.Column<int>(type: "integer", nullable: false),
                     ServicesId = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>

@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LoopCut.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260122003744_SubcriptionFeature")]
+    [Migration("20260123065945_SubcriptionFeature")]
     partial class SubcriptionFeature
     {
         /// <inheritdoc />
@@ -125,6 +125,9 @@ namespace LoopCut.Infrastructure.Migrations
 
                     b.Property<string>("ServicesId")
                         .HasColumnType("text");
+
+                    b.Property<int>("status")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
