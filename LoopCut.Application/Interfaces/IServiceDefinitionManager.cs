@@ -11,5 +11,7 @@ namespace LoopCut.Application.Interfaces
         Task DeleteService(string id);
 
         Task<BasePaginatedList<ServiceResponse>> GetAllServices(int pageIndex, int pageSize, string? name);
+
+        Task<ServiceResponse> AddServicePlan(string serviceId, ServicePlanRequestV1 servicePlanRequest);
     }
 }

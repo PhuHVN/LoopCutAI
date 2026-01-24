@@ -1,6 +1,6 @@
 ﻿using LoopCut.Domain.Entities;
 
-namespace LoopCut.Application.Services
+namespace LoopCut.Application.Interfaces
 {
     public interface IUserService
     {

@@ -16,6 +16,7 @@ namespace LoopCut.Application
             services.AddScoped<IUserMembershipService, UserMembershipService>();
             services.AddScoped<IServiceDefinitionManager, ServiceDefinitionManager>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IServicePlanManager, ServicePlanManager>();
 
 
             services.AddValidatorsFromAssemblyContaining(typeof(DependencyInjection));

@@ -25,6 +25,8 @@ namespace LoopCut.Application.Services
             _userService = userService;
         }
 
+ 
+
         public async Task<ServiceResponse> CreateService(ServiceRequestV1 serviceRequest)
         {
             // Get user form context
@@ -149,8 +151,13 @@ namespace LoopCut.Application.Services
         public async Task<ServiceResponse> UpdateService(string id, ServiceRequestV1 serviceRequest)
         {
             // Only update service details, not service plans
-            var existingService = await _unitOfWork.ServiceRepository.GetByIdAsync(id)
-                ?? throw new ArgumentException("Service not found");
+            var existingService = await _unitOfWork.ServiceRepository.GetByIdAsync(id);
+
+            if (existingService == null || existingService.Status == ServiceEnums.Inactive)
+            {
+                throw new ArgumentException("Service not found");
+            }
+
             var user = await _userService.GetCurrentUserLoginAsync();
 
             existingService.Name = serviceRequest.Name;
@@ -171,6 +178,41 @@ namespace LoopCut.Application.Services
                 throw;
             }
         }
+
+        public async Task<ServiceResponse> AddServicePlan(string serviceId, ServicePlanRequestV1 servicePlanRequest)
+        {
+            // 1. Find existing service
+            var existingService = await _unitOfWork.ServiceRepository.GetByIdAsync(serviceId)
+                ?? throw new ArgumentException("Service not found");
+
+            var user = await _userService.GetCurrentUserLoginAsync();
+            // 2. Create new ServicePlan entity
+            var servicePlan = new ServicePlans
+            {
+                PlanName = servicePlanRequest.PlanName,
+                Price = servicePlanRequest.Price,
+                BillingCycleEnums = servicePlanRequest.BillingCycleEnums,
+                CreatedAt = DateTime.UtcNow,
+                status = ServicePlanEnums.Active,
+                ServiceDefinitionId = existingService.Id,
+                ModifiedByID = user.Id,
+                ModifiedBy = user,
+                ServiceDefinition = existingService
+            };
+            // 3. Save to database
+            try 
+            {
+                await _unitOfWork.ServicePlanRepository.InsertAsync(servicePlan);
+                await _unitOfWork.SaveChangesAsync();
+                return MapToServiceResponse(existingService);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding service plan");
+                throw;
+            }
+        }
+
 
         private ServiceResponse MapToServiceResponse(ServiceDefinitions service)
         {
