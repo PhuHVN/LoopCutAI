@@ -1,6 +1,8 @@
 ﻿
+using LoopCut.Application.DTOs;
 using LoopCut.Application.DTOs.ServiceDTO;
 using LoopCut.Application.Interfaces;
+using LoopCut.Domain.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -23,7 +25,7 @@ namespace LoopCut.API.Controllers
         public async Task<IActionResult> GetAllServices([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10, [FromQuery] string? name = null)
         {
             var result = await _serviceDefinitionManager.GetAllServices(pageIndex, pageSize, name);
-            return Ok(result);
+            return Ok(ApiResponse<BasePaginatedList<ServiceResponse>>.OkResponse(result, "Get all services successful!", "200"));
         }
 
 
@@ -33,7 +35,7 @@ namespace LoopCut.API.Controllers
         public async Task<IActionResult> GetServiceById(string id)
         {
             var result = await _serviceDefinitionManager.GetServiceById(id);
-            return Ok(result);
+            return Ok(ApiResponse<ServiceResponse>.OkResponse(result, "Get service by ID successful!", "200"));
         }
 
 
@@ -43,7 +45,7 @@ namespace LoopCut.API.Controllers
         public async Task<IActionResult> CreateService([FromBody] ServiceRequestV1 serviceRequest)
         {
             var result = await _serviceDefinitionManager.CreateService(serviceRequest);
-            return Ok(result);
+            return Ok(ApiResponse<ServiceResponse>.OkResponse(result, "Service created successfully!", "201"));
         }
 
 
@@ -53,7 +55,7 @@ namespace LoopCut.API.Controllers
         public async Task<IActionResult> UpdateService([FromRoute] string id, [FromBody] ServiceRequestV1 serviceRequest)
         {
             var result = await _serviceDefinitionManager.UpdateService(id, serviceRequest);
-            return Ok(result);
+            return Ok(ApiResponse<ServiceResponse>.OkResponse(result, "Service updated successfully!", "200"));
         }
 
 
@@ -63,7 +65,17 @@ namespace LoopCut.API.Controllers
         public async Task<IActionResult> DeleteService([FromRoute] string id)
         {
             await _serviceDefinitionManager.DeleteService(id);
-            return Ok("Service deleted successfully");
+            return Ok(ApiResponse<string>.OkResponse("Service deleted successfully", "200"));
+        }
+
+        // Add Service Plan to a Service
+        [Authorize(Roles = "Admin")]
+        [HttpPost("{serviceId}/plans")]
+        [SwaggerOperation(Summary = "Add a service plan to a service")]
+        public async Task<IActionResult> AddServicePlan([FromRoute] string serviceId, [FromBody] ServicePlanRequestV1 servicePlanRequest)
+        {
+            var result = await _serviceDefinitionManager.AddServicePlan(serviceId, servicePlanRequest);
+            return Ok(ApiResponse<ServiceResponse>.OkResponse(result, "Service plan added successfully!", "201"));
         }
     }
 }

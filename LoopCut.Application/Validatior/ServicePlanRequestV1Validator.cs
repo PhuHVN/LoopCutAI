@@ -15,7 +15,7 @@ namespace LoopCut.Application.Validatior
                 .Cascade(CascadeMode.Stop)
                 .GreaterThanOrEqualTo(0).WithMessage("Price must be a non-negative value.");
             RuleFor(x => x.BillingCycleEnums)
-                .IsInEnum().WithMessage("Billing cycle must be a valid enum value.");
+                .IsInEnum().WithMessage("Billing cycle must be a valid enum value: Monthly or Quarterly or Yearly");
 
         }
     }
