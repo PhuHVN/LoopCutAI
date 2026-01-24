@@ -61,7 +61,300 @@ namespace LoopCut.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Accounts");
+                    b.ToTable("users", (string)null);
+                });
+
+            modelBuilder.Entity("LoopCut.Domain.Entities.Membership", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("memberships", (string)null);
+                });
+
+            modelBuilder.Entity("LoopCut.Domain.Entities.ServiceDefinitions", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("LastUpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LogoUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ModifiedByID")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ModifiedById")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ModifiedByID");
+
+                    b.HasIndex("ModifiedById");
+
+                    b.ToTable("Services");
+                });
+
+            modelBuilder.Entity("LoopCut.Domain.Entities.ServicePlans", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<int>("BillingCycleEnums")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("LastUpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ModifiedByID")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ModifiedById")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PlanName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<double>("Price")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("ServiceDefinitionId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("status")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ModifiedByID");
+
+                    b.HasIndex("ModifiedById");
+
+                    b.HasIndex("ServiceDefinitionId");
+
+                    b.ToTable("ServicePlans");
+                });
+
+            modelBuilder.Entity("LoopCut.Domain.Entities.Subscriptions", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<string>("AccountId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("LastUpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<double>("Price")
+                        .HasColumnType("double precision");
+
+                    b.Property<int>("RemiderDays")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ServicePlanId")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SubscriptionsName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("ServicePlanId");
+
+                    b.ToTable("Subcriptions");
+                });
+
+            modelBuilder.Entity("LoopCut.Domain.Entities.UserMembership", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("MembershipId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MembershipId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("user_memberships", (string)null);
+                });
+
+            modelBuilder.Entity("LoopCut.Domain.Entities.ServiceDefinitions", b =>
+                {
+                    b.HasOne("LoopCut.Domain.Entities.Accounts", null)
+                        .WithMany("ModifiedServices")
+                        .HasForeignKey("ModifiedByID");
+
+                    b.HasOne("LoopCut.Domain.Entities.Accounts", "ModifiedBy")
+                        .WithMany()
+                        .HasForeignKey("ModifiedById");
+
+                    b.Navigation("ModifiedBy");
+                });
+
+            modelBuilder.Entity("LoopCut.Domain.Entities.ServicePlans", b =>
+                {
+                    b.HasOne("LoopCut.Domain.Entities.Accounts", null)
+                        .WithMany("ModifiedServicePlans")
+                        .HasForeignKey("ModifiedByID");
+
+                    b.HasOne("LoopCut.Domain.Entities.Accounts", "ModifiedBy")
+                        .WithMany()
+                        .HasForeignKey("ModifiedById");
+
+                    b.HasOne("LoopCut.Domain.Entities.ServiceDefinitions", "ServiceDefinition")
+                        .WithMany("ServicePlans")
+                        .HasForeignKey("ServiceDefinitionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ModifiedBy");
+
+                    b.Navigation("ServiceDefinition");
+                });
+
+            modelBuilder.Entity("LoopCut.Domain.Entities.Subscriptions", b =>
+                {
+                    b.HasOne("LoopCut.Domain.Entities.Accounts", "Account")
+                        .WithMany("Subcriptions")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LoopCut.Domain.Entities.ServicePlans", "ServicePlan")
+                        .WithMany("Subcriptions")
+                        .HasForeignKey("ServicePlanId");
+
+                    b.Navigation("Account");
+
+                    b.Navigation("ServicePlan");
+                });
+
+            modelBuilder.Entity("LoopCut.Domain.Entities.UserMembership", b =>
+                {
+                    b.HasOne("LoopCut.Domain.Entities.Membership", "Membership")
+                        .WithMany("UserMemberships")
+                        .HasForeignKey("MembershipId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LoopCut.Domain.Entities.Accounts", "User")
+                        .WithMany("UserMemberships")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Membership");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("LoopCut.Domain.Entities.Accounts", b =>
+                {
+                    b.Navigation("ModifiedServicePlans");
+
+                    b.Navigation("ModifiedServices");
+
+                    b.Navigation("Subcriptions");
+
+                    b.Navigation("UserMemberships");
+                });
+
+            modelBuilder.Entity("LoopCut.Domain.Entities.Membership", b =>
+                {
+                    b.Navigation("UserMemberships");
+                });
+
+            modelBuilder.Entity("LoopCut.Domain.Entities.ServiceDefinitions", b =>
+                {
+                    b.Navigation("ServicePlans");
+                });
+
+            modelBuilder.Entity("LoopCut.Domain.Entities.ServicePlans", b =>
+                {
+                    b.Navigation("Subcriptions");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,5 +1,9 @@
 ﻿using AutoMapper;
+using LoopCut.Application.DTOs.AccountDtos;
+using LoopCut.Application.DTOs.MembershipDtos;
+using LoopCut.Application.DTOs.UserMembershipDtos;
 using LoopCut.Domain.Abstractions;
+using LoopCut.Domain.Entities;
 
 namespace LoopCut.Application.DTOs
 {
@@ -10,6 +14,25 @@ namespace LoopCut.Application.DTOs
             //Config Mapper Paging
             CreateMap(typeof(BasePaginatedList<>), typeof(BasePaginatedList<>))
                 .ConvertUsing(typeof(BasePaginatedListConverter<,>));
+            // Mapping
+            CreateMap<Accounts, AccountResponse>();
+            CreateMap<Membership, MembershipResponse>();
+            CreateMap<UserMembership, UserMembershipResponse>()
+                .ForMember(dest => dest.MembershipName, opt => opt.MapFrom(src => src.Membership.Name))
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.User.FullName));
+            CreateMap<UserMembership, UserMembershipDetail>()
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.User.Email))
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.User.FullName))
+                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.User.Address))
+                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.User.PhoneNumber))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.User.CreatedAt))
+                .ForMember(dest => dest.LastUpdatedAt, opt => opt.MapFrom(src => src.User.LastUpdatedAt))
+                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.User.Role));
+
+            CreateMap<Membership, MembershipDetail>()
+                .ForMember(d => d.MembershipId, opt => opt.MapFrom(s => s.Id));
+
 
         }
         public class BasePaginatedListConverter<TSource, TDestination> : ITypeConverter<BasePaginatedList<TSource>, BasePaginatedList<TDestination>>

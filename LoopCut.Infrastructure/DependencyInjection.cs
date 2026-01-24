@@ -1,6 +1,8 @@
 ﻿
 using LoopCut.Domain.Abstractions;
+using LoopCut.Domain.IRepository;
 using LoopCut.Infrastructure.Implemention;
+using LoopCut.Infrastructure.Repository;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,6 +15,13 @@ namespace LoopCut.Infrastructure
             // Infrastructure service registrations go here
             services.AddLogging();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
+            // DI for repositories
+            services.AddScoped<IAccountRepository, AccountRepository>();
+            services.AddScoped<IServicePlanRepository, ServicePlanRepository>();
+            services.AddScoped<IServiceRepository, ServiceRepository>();
+            services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
         }
 
     }

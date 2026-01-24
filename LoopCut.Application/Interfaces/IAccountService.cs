@@ -1,4 +1,5 @@
-﻿using LoopCut.Domain.Abstractions;
+﻿using LoopCut.Application.DTOs.AccountDtos;
+using LoopCut.Domain.Abstractions;
 using LoopCut.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -10,10 +11,10 @@ namespace LoopCut.Application.Interfaces
 {
     public interface IAccountService
     {
-        Task<Accounts> CreateAccount();
-        Task<Accounts> UpdateAccount(Accounts account);
-        Task<Accounts> GetAccountById(string id);
-        Task<BasePaginatedList<Accounts>> GetAllAccounts();
+        Task<AccountResponse> CreateAccount(AccountRequest account);
+        Task<AccountResponse> UpdateAccount(string id , AccountRequest account);
+        Task<AccountResponse> GetAccountById(string id);
+        Task<BasePaginatedList<AccountResponse>> GetAllAccounts(int pageIndex, int pageSize);
         Task DeleteAccount(string id);
     }
 }

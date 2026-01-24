@@ -13,7 +13,6 @@ namespace LoopCut.Domain.Entities
         [Key]
         public string Id { get; set; } = Guid.NewGuid().ToString();
         [Required]
-        [EmailAddress(ErrorMessage = "Invalid email address")]
         public string Email { get; set; } = string.Empty;
         [Required]
         public string Password { get; set; } = string.Empty;              
@@ -24,5 +23,15 @@ namespace LoopCut.Domain.Entities
         public DateTime? LastUpdatedAt { get; set; }
         public RoleEnum Role { get; set; } 
         public StatusEnum Status { get; set; } = StatusEnum.Active;
+        //Navigation Properties
+        public ICollection<UserMembership> UserMemberships { get; set; } = new List<UserMembership>();
+
+        // List Subcriptions
+        public ICollection<Subscriptions> Subcriptions { get; set; } = new List<Subscriptions>();
+
+        // List Services modified
+        public ICollection<ServiceDefinitions> ModifiedServices { get; set; } = new List<ServiceDefinitions>();
+        // List ServicePlans modified
+        public ICollection<ServicePlans> ModifiedServicePlans { get; set; } = new List<ServicePlans>();
     }
 }

@@ -11,14 +11,18 @@ namespace LoopCut.Domain.Enums
     {
         [Display(Name = "Admin")]
         Admin,
-        [Display(Name = "Customer")]
-        Customer,
-        [Display(Name = "Seller")]
-        Seller 
+        [Display(Name = "User")]
+        User 
     }
     public enum StatusEnum
     {
         Inactive = 0,
+        Active = 1,
+    }
+
+    public enum MembershipStatusEnum
+    {
+        Expired = 0,
         Active = 1,
     }
 
