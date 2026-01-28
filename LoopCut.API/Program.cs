@@ -13,7 +13,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.OpenApi.Models;
 using System.Security.Claims;
 using System.Text.Json;
-
 var builder = WebApplication.CreateBuilder(args);
 
 //convert enum to string in json
