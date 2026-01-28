@@ -8,16 +8,16 @@ using System.Threading.Tasks;
 
 namespace LoopCut.Domain.Entities
 {
-    public class Membership
+    public class Payment
     {
         [Key]
         public string Id { get; set; } = Guid.NewGuid().ToString();
-        public string Name { get; set; } = string.Empty;
-        public string Code { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
+        public string UserId { get; set; } = string.Empty;
+        public string MembershipId { get; set; } = string.Empty;
+        public int Amount { get; set; }
         public decimal Price { get; set; }
-        public StatusEnum Status { get; set; } 
+        public PaymentStatusEnum Status { get; set; } = PaymentStatusEnum.Pending;
 
-        public ICollection<UserMembership> UserMemberships { get; set; } = new List<UserMembership>();
+
     }
 }
