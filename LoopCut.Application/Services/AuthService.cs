@@ -9,15 +9,10 @@ using LoopCut.Domain.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Authentication;
 using System.Security.Claims;
-using System.Security.Principal;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace LoopCut.Application.Services
 {
@@ -92,9 +87,7 @@ namespace LoopCut.Application.Services
             }
             return new AuthResponse
             {
-                Token = await GenerateJwtToken(existingAccount),
-                UserId = existingAccount.Id,
-                Role = existingAccount.Role
+                Token = await GenerateJwtToken(existingAccount)
             };
         }
 
@@ -115,8 +108,6 @@ namespace LoopCut.Application.Services
                 return new AuthResponse
                 {
                     Token = await GenerateJwtToken(existingAccount),
-                    UserId = existingAccount.Id,
-                    Role = existingAccount.Role
                 };
             }catch(AuthenticationException e)
             {

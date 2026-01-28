@@ -3,6 +3,7 @@ using LoopCut.Domain.Abstractions;
 using LoopCut.Domain.IRepository;
 using LoopCut.Infrastructure.Implemention;
 using LoopCut.Infrastructure.Repository;
+using LoopCut.Infrastructure.Seeder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -16,7 +17,7 @@ namespace LoopCut.Infrastructure
             services.AddLogging();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-
+            services.AddScoped<SeederData>();
             // DI for repositories
             services.AddScoped<IAccountRepository, AccountRepository>();
             services.AddScoped<IServicePlanRepository, ServicePlanRepository>();
