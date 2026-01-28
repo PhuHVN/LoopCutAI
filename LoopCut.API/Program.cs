@@ -1,9 +1,11 @@
 using AutoMapper;
+using FluentValidation.AspNetCore;
 using LoopCut.API;
 using LoopCut.API.Middleware;
 using LoopCut.Application.DTOs;
 using LoopCut.Domain.Enums.EnumConfig;
 using LoopCut.Infrastructure.DatabaseSettings;
+using LoopCut.Infrastructure.Seeder;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +13,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.OpenApi.Models;
 using System.Security.Claims;
 using System.Text.Json;
-
 var builder = WebApplication.CreateBuilder(args);
 
 //convert enum to string in json
@@ -19,6 +20,9 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.Converters.Add(
         new ExclusiveEnumConverterFactory(excludeFromString: new[] { typeof(StatusCodeHelper) }));
+}).AddFluentValidation(options =>
+{
+    options.ImplicitlyValidateChildProperties = true;
 });
 
 //Cors
@@ -163,7 +167,7 @@ var mapperConfig = new MapperConfiguration(cfg =>
 });
 IMapper mapper = mapperConfig.CreateMapper();
 builder.Services.AddSingleton(mapper);
-
+builder.Services.AddHttpClient<VietQRService>();
 // Add services to the container.
 builder.Services.AddControllers();
 //Add Dependency Injection
@@ -181,9 +185,15 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+using (var scope = app.Services.CreateScope())
+{
+    var seeder = scope.ServiceProvider.GetRequiredService<SeederData>();
+    await seeder.SeedAdminAccountAsync();
+}
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
+app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 

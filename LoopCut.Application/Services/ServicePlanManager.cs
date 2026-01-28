@@ -35,8 +35,6 @@ namespace LoopCut.Application.Services
             servicePlan.status = ServicePlanEnums.Inactive;
             servicePlan.LastUpdatedAt = DateTime.UtcNow;
             var user = await _userService.GetCurrentUserLoginAsync();
-            servicePlan.ModifiedBy = user;
-            servicePlan.ModifiedByID = user.Id;
 
             await _unitOfWork.ServicePlanRepository.UpdateAsync(servicePlan);
 
@@ -55,11 +53,35 @@ namespace LoopCut.Application.Services
 
         public async Task<ServicePlanResponse> GetServicePlansByIdAsync(string id)
         {
-            var servicePlan = await _unitOfWork.ServicePlanRepository.GetByIdAsync(id);
-            if (servicePlan == null || servicePlan.status == ServicePlanEnums.Inactive)
+            var user = await _userService.GetCurrentUserLoginAsync();
+
+            if (user.Role == RoleEnum.Admin)
+            {
+                var adminServicePlan = await _unitOfWork.ServicePlanRepository.FindAsync(sp => sp.Id == id && sp.status == ServicePlanEnums.Active);
+                if (adminServicePlan == null)
+                {
+                    throw new KeyNotFoundException($"Service plan not found.");
+                }
+                return new ServicePlanResponse
+                {
+                    Id = adminServicePlan.Id,
+                    PlanName = adminServicePlan.PlanName,
+                    Price = adminServicePlan.Price,
+                    BillingCycleEnums = adminServicePlan.BillingCycleEnums,
+                    Status = adminServicePlan.status,
+                    CreatedAt = adminServicePlan.CreatedAt,
+                    LastUpdatedAt = adminServicePlan.LastUpdatedAt,
+                    ModifiedByName = adminServicePlan.ModifiedBy?.FullName
+                };
+            }
+
+            var servicePlan = await _unitOfWork.ServicePlanRepository.FindAsync(sp => sp.Id == id && sp.status == ServicePlanEnums.Active && sp.ModifiedByID == user.Id);
+
+            if (servicePlan == null)
             {
                 throw new KeyNotFoundException($"Service plan not found.");
             }
+
 
             return new ServicePlanResponse
             {
@@ -76,7 +98,15 @@ namespace LoopCut.Application.Services
 
         public async Task<ServicePlanResponse> UpdateServicePlanAsync(string id, ServicePlanRequestV1 servicePlanRequestV1)
         {
-           var servicePlan = await _unitOfWork.ServicePlanRepository.GetByIdAsync(id);
+            var user = await _userService.GetCurrentUserLoginAsync();
+            var servicePlan = await _unitOfWork.ServicePlanRepository.GetByIdAsync(id);
+
+            // Check permissions
+            if (servicePlan?.ModifiedByID != user.Id)
+            {
+                throw new UnauthorizedAccessException("You do not have permission to update this service plan.");
+            }
+
             if (servicePlan == null || servicePlan.status == ServicePlanEnums.Inactive)
             {
                 throw new KeyNotFoundException($"Service plan with ID {id} not found.");
@@ -84,16 +114,15 @@ namespace LoopCut.Application.Services
 
             servicePlan.PlanName = servicePlanRequestV1.PlanName;
             servicePlan.Price = servicePlanRequestV1.Price;
-            servicePlan.BillingCycleEnums = servicePlanRequestV1.BillingCycleEnums;
+            servicePlan.BillingCycleEnums = servicePlanRequestV1.BillingCycleEnums ?? BillingCycleEnums.None;
             servicePlan.LastUpdatedAt = DateTime.UtcNow;
-
-            var user = await _userService.GetCurrentUserLoginAsync();
             servicePlan.ModifiedBy = user;
             servicePlan.ModifiedByID = user.Id;
 
-            try 
+            try
             {
                 await _unitOfWork.ServicePlanRepository.UpdateAsync(servicePlan);
+                await _unitOfWork.SaveChangesAsync();
             }
             catch (Exception ex)
             {

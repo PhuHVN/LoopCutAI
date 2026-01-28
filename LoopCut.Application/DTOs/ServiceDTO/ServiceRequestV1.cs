@@ -17,7 +17,6 @@ namespace LoopCut.Application.DTOs.ServiceDTO
         public string PlanName { get; set; } = string.Empty;
         public double Price { get; set; } = 0.0;
 
-        [JsonConverter(typeof(JsonStringEnumConverter))]
-        public BillingCycleEnums BillingCycleEnums { get; set; }
+        public BillingCycleEnums? BillingCycleEnums { get; set; }
     }
 }
