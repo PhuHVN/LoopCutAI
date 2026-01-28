@@ -25,5 +25,10 @@ namespace LoopCut.Domain.Enums
         Expired = 0,
         Active = 1,
     }
-
+    public enum PaymentStatusEnum
+    {
+        Pending = 0,
+        Completed = 1,
+        Failed = 2,
+    }
 }
