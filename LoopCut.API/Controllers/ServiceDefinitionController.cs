@@ -39,7 +39,7 @@ namespace LoopCut.API.Controllers
         }
 
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "User")]
         [HttpPost]
         [SwaggerOperation(Summary = "Create a new service")]
         public async Task<IActionResult> CreateService([FromBody] ServiceRequestV1 serviceRequest)
@@ -49,17 +49,17 @@ namespace LoopCut.API.Controllers
         }
 
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "User")]
         [HttpPut("{id}")]
         [SwaggerOperation(Summary = "Update a service by ID")]
-        public async Task<IActionResult> UpdateService([FromRoute] string id, [FromBody] ServiceRequestV1 serviceRequest)
+        public async Task<IActionResult> UpdateService([FromRoute] string id, [FromBody] ServiceUpdateRequest serviceRequest)
         {
             var result = await _serviceDefinitionManager.UpdateService(id, serviceRequest);
             return Ok(ApiResponse<ServiceResponse>.OkResponse(result, "Service updated successfully!", "200"));
         }
 
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "User")]
         [HttpDelete("{id}")]
         [SwaggerOperation(Summary = "Delete a service by ID")]
         public async Task<IActionResult> DeleteService([FromRoute] string id)
@@ -69,7 +69,7 @@ namespace LoopCut.API.Controllers
         }
 
         // Add Service Plan to a Service
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "User")]
         [HttpPost("{serviceId}/plans")]
         [SwaggerOperation(Summary = "Add a service plan to a service")]
         public async Task<IActionResult> AddServicePlan([FromRoute] string serviceId, [FromBody] ServicePlanRequestV1 servicePlanRequest)

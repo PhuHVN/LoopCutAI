@@ -25,7 +25,7 @@ namespace LoopCut.Application.Services
             _userService = userService;
         }
 
- 
+
 
         public async Task<ServiceResponse> CreateService(ServiceRequestV1 serviceRequest)
         {
@@ -60,7 +60,7 @@ namespace LoopCut.Application.Services
                         {
                             PlanName = planRequest.PlanName,
                             Price = planRequest.Price,
-                            BillingCycleEnums = planRequest.BillingCycleEnums,
+                            BillingCycleEnums = planRequest.BillingCycleEnums ?? BillingCycleEnums.None,
                             CreatedAt = DateTime.UtcNow,
                             status = ServicePlanEnums.Active,
                             ServiceDefinitionId = service.Id,
@@ -97,13 +97,20 @@ namespace LoopCut.Application.Services
 
         public async Task DeleteService(string id)
         {
+            var user = await _userService.GetCurrentUserLoginAsync();
             var existingService = await _unitOfWork.ServiceRepository.GetByIdAsync(id);
+
+            // Check permission
+            if (user.Id != existingService.ModifiedByID)
+            {
+                throw new UnauthorizedAccessException("You do not have permission to delete this service.");
+            }
+
             if (existingService == null || existingService.Status == ServiceEnums.Inactive)
             {
                 throw new ArgumentException("Service not found");
             }
 
-            var user = await _userService.GetCurrentUserLoginAsync();
 
             existingService.Status = ServiceEnums.Inactive;
             existingService.ModifiedByID = user.Id;
@@ -115,14 +122,21 @@ namespace LoopCut.Application.Services
 
         public async Task<BasePaginatedList<ServiceResponse>> GetAllServices(int pageIndex, int pageSize, string? name)
         {
+            var user = await _userService.GetCurrentUserLoginAsync();
             var query = _unitOfWork.ServiceRepository.Entity.Where(s => s.Status == ServiceEnums.Active);
+
+            if (user.Role != RoleEnum.Admin)
+            {
+                query = query.Where(s => s.ModifiedByID == user.Id);
+            }
+
             query = query.Include(s => s.ServicePlans).ThenInclude(sp => sp.ModifiedBy);
             if (!string.IsNullOrEmpty(name))
             {
                 query = query.Where(s => s.Name.Contains(name));
             }
 
-            var paginatedServices = await _unitOfWork.ServiceRepository.GetPagging(query,pageIndex,pageSize);
+            var paginatedServices = await _unitOfWork.ServiceRepository.GetPagging(query, pageIndex, pageSize);
 
             var serviceResponses = paginatedServices.Items.Select(service => MapToServiceResponse(service)).ToList();
             return new BasePaginatedList<ServiceResponse>
@@ -137,7 +151,20 @@ namespace LoopCut.Application.Services
 
         public async Task<ServiceResponse> GetServiceById(string id)
         {
-            var existingService = await _unitOfWork.ServiceRepository.FindAsync(s => s.Id == id && s.Status == ServiceEnums.Active,
+            var user = await _userService.GetCurrentUserLoginAsync();
+
+            if (user.Role == RoleEnum.Admin)
+            {
+                var adminService = await _unitOfWork.ServiceRepository.FindAsync(s => s.Id == id && s.Status == ServiceEnums.Active,
+                include: s => s.Include(x => x.ServicePlans).ThenInclude(sp => sp.ModifiedBy));
+                if (adminService == null)
+                {
+                    throw new ArgumentException("Service not found");
+                }
+                return MapToServiceResponse(adminService);
+            }
+
+            var existingService = await _unitOfWork.ServiceRepository.FindAsync(s => s.Id == id && s.Status == ServiceEnums.Active && s.ModifiedByID == user.Id,
                 include: s => s.Include(x => x.ServicePlans).ThenInclude(sp => sp.ModifiedBy));
 
             if (existingService == null)
@@ -148,17 +175,22 @@ namespace LoopCut.Application.Services
         }
 
 
-        public async Task<ServiceResponse> UpdateService(string id, ServiceRequestV1 serviceRequest)
+        public async Task<ServiceResponse> UpdateService(string id, ServiceUpdateRequest serviceRequest)
         {
-            // Only update service details, not service plans
+            var user = await _userService.GetCurrentUserLoginAsync();
+
             var existingService = await _unitOfWork.ServiceRepository.GetByIdAsync(id);
+
+            // Check permission
+            if (user.Id != existingService.ModifiedByID)
+            {
+                throw new UnauthorizedAccessException("You do not have permission to update this service.");
+            }
 
             if (existingService == null || existingService.Status == ServiceEnums.Inactive)
             {
                 throw new ArgumentException("Service not found");
             }
-
-            var user = await _userService.GetCurrentUserLoginAsync();
 
             existingService.Name = serviceRequest.Name;
             existingService.Description = serviceRequest.Description;
@@ -186,12 +218,19 @@ namespace LoopCut.Application.Services
                 ?? throw new ArgumentException("Service not found");
 
             var user = await _userService.GetCurrentUserLoginAsync();
+
+            // Check permission
+            if (user.Id != existingService.ModifiedByID)
+            {
+                throw new UnauthorizedAccessException("You do not have permission to add service plan to this service.");
+            }
+
             // 2. Create new ServicePlan entity
             var servicePlan = new ServicePlans
             {
                 PlanName = servicePlanRequest.PlanName,
                 Price = servicePlanRequest.Price,
-                BillingCycleEnums = servicePlanRequest.BillingCycleEnums,
+                BillingCycleEnums = servicePlanRequest.BillingCycleEnums ?? BillingCycleEnums.None,
                 CreatedAt = DateTime.UtcNow,
                 status = ServicePlanEnums.Active,
                 ServiceDefinitionId = existingService.Id,
@@ -200,7 +239,7 @@ namespace LoopCut.Application.Services
                 ServiceDefinition = existingService
             };
             // 3. Save to database
-            try 
+            try
             {
                 await _unitOfWork.ServicePlanRepository.InsertAsync(servicePlan);
                 await _unitOfWork.SaveChangesAsync();

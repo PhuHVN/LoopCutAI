@@ -1,4 +1,5 @@
 using AutoMapper;
+using FluentValidation.AspNetCore;
 using LoopCut.API;
 using LoopCut.API.Middleware;
 using LoopCut.Application.DTOs;
@@ -19,6 +20,9 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.Converters.Add(
         new ExclusiveEnumConverterFactory(excludeFromString: new[] { typeof(StatusCodeHelper) }));
+}).AddFluentValidation(options =>
+{
+    options.ImplicitlyValidateChildProperties = true;
 });
 
 //Cors

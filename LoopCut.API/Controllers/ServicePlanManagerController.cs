@@ -29,7 +29,7 @@ namespace LoopCut.API.Controllers
             return Ok(ApiResponse<ServicePlanResponse>.OkResponse(servicePlan, "Get service plan by ID successful!", "200"));
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "User")]
         [HttpPut("{id}")]
         [SwaggerOperation(Summary = "Update service plan by ID")]
         public async Task<IActionResult> UpdateServicePlanById([FromRoute] string id, [FromBody] ServicePlanRequestV1 servicePlanRequestV1)
@@ -38,7 +38,7 @@ namespace LoopCut.API.Controllers
             return Ok(ApiResponse<ServicePlanResponse>.OkResponse(updatedServicePlan, "Service plan updated successfully!", "200"));
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "User")]
         [HttpDelete("{id}")]
         [SwaggerOperation(Summary = "Delete service plan by ID")]
         public async Task<IActionResult> DeleteServicePlanById(string id)
