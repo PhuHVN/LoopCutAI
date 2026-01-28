@@ -7,7 +7,7 @@ namespace LoopCut.Application.Validatior
     {
         public ServicePlanRequestV1Validator()
         {
-            RuleFor(x => x.PlanName) 
+            RuleFor(x => x.PlanName)
                 .Cascade(CascadeMode.Stop)
                 .NotEmpty().WithMessage("Plan name is required.")
                 .MaximumLength(100).WithMessage("Plan name must not exceed 100 characters.");
@@ -15,7 +15,9 @@ namespace LoopCut.Application.Validatior
                 .Cascade(CascadeMode.Stop)
                 .GreaterThanOrEqualTo(0).WithMessage("Price must be a non-negative value.");
             RuleFor(x => x.BillingCycleEnums)
-                .IsInEnum().WithMessage("Billing cycle must be a valid enum value: Monthly or Quarterly or Yearly");
+                .Cascade(CascadeMode.Stop)
+                .NotNull().WithMessage("Billing cycle is required.") // Nếu để Nullable
+                .IsInEnum().WithMessage("Billing cycle must be a valid value (Monthly, Quarterly, Yearly).");
 
         }
     }

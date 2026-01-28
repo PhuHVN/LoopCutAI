@@ -18,6 +18,8 @@ namespace LoopCut.Application
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IServicePlanManager, ServicePlanManager>();
             services.AddScoped<IVietQrService, VietQRService>();
+            services.AddScoped<ISubscriptionService, SubscriptionService>();
+
 
             services.AddValidatorsFromAssemblyContaining(typeof(DependencyInjection));
         }
