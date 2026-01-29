@@ -167,7 +167,6 @@ var mapperConfig = new MapperConfiguration(cfg =>
 });
 IMapper mapper = mapperConfig.CreateMapper();
 builder.Services.AddSingleton(mapper);
-builder.Services.AddHttpClient<VietQRService>();
 // Add services to the container.
 builder.Services.AddControllers();
 //Add Dependency Injection
