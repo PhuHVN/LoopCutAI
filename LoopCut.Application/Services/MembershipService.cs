@@ -34,6 +34,7 @@ namespace LoopCut.Application.Services
             {               
                 Name = membership.Name,
                 Code = membership.Code,
+                Price = membership.Price,
                 Description = membership.Description,
                 Status = StatusEnum.Active
             };
@@ -52,6 +53,7 @@ namespace LoopCut.Application.Services
             }
             membership.Status = StatusEnum.Inactive;
             await _unitOfWork.GetRepository<Membership>().UpdateAsync(membership);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task<BasePaginatedList<MembershipResponse>> GetAllMemberships(int pageIndex, int pageSize)
@@ -73,7 +75,7 @@ namespace LoopCut.Application.Services
             return mapper.Map<MembershipResponse>(membership);
         }
 
-        public async Task<MembershipResponse> UpdateMembership(string id, MembershipRequest membership)
+        public async Task<MembershipResponse> UpdateMembership(string id, MembershipUpRes membership)
         {
             var existingMembership = await _unitOfWork.GetRepository<Membership>()
                 .FindAsync(m => m.Id == id && m.Status == StatusEnum.Active);
@@ -82,17 +84,22 @@ namespace LoopCut.Application.Services
                 throw new Exception("Membership not found");
             };
             var isUpdate = false;
-            if(membership.Name != null && existingMembership.Name != membership.Name)
+            if(!string.IsNullOrEmpty(membership.Name)  && existingMembership.Name != membership.Name)
             {
                 existingMembership.Name = membership.Name;
                 isUpdate = true;
             }
-            if(membership.Code != null && existingMembership.Code != membership.Code)
+            if(!string.IsNullOrEmpty(membership.Code) && existingMembership.Code != membership.Code)
             {
                 existingMembership.Code = membership.Code;
                 isUpdate = true;
             }
-            if(membership.Description != null && existingMembership.Description != membership.Description)
+            if(membership.Price > 0 && existingMembership.Price != membership.Price)
+            {
+                existingMembership.Price = membership.Price; 
+                isUpdate = true;
+            }
+            if(!string.IsNullOrEmpty(membership.Description) && existingMembership.Description != membership.Description)
             {
                 existingMembership.Description = membership.Description;
                 isUpdate = true;
@@ -102,6 +109,7 @@ namespace LoopCut.Application.Services
                 throw new Exception("No changes detected to update.");
             }
             await _unitOfWork.GetRepository<Membership>().UpdateAsync(existingMembership);
+            await _unitOfWork.SaveChangesAsync();
             return mapper.Map<MembershipResponse>(existingMembership);
         }
     }

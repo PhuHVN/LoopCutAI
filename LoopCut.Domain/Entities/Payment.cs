@@ -14,6 +14,7 @@ namespace LoopCut.Domain.Entities
         public string Id { get; set; } = Guid.NewGuid().ToString();
         public string UserId { get; set; } = string.Empty;
         public string MembershipId { get; set; } = string.Empty;
+        public string OrderCode { get; set; } = string.Empty;
         public int Amount { get; set; }
         public string Description { get; set; } = string.Empty;
         public PaymentStatusEnum Status { get; set; } = PaymentStatusEnum.Pending;
