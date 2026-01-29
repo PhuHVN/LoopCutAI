@@ -2,6 +2,7 @@
 using LoopCut.Application.Interfaces;
 using LoopCut.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
+using PayOS;
 
 namespace LoopCut.Application
 {
@@ -17,8 +18,9 @@ namespace LoopCut.Application
             services.AddScoped<IServiceDefinitionManager, ServiceDefinitionManager>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IServicePlanManager, ServicePlanManager>();
-            services.AddScoped<IVietQrService, VietQRService>();
             services.AddScoped<ISubscriptionService, SubscriptionService>();
+            services.AddScoped<IPaymentService, PaymentService>();
+            services.AddScoped<PayOSClient>();
 
 
             services.AddValidatorsFromAssemblyContaining(typeof(DependencyInjection));

@@ -49,7 +49,7 @@ namespace LoopCut.API.Controllers
         }
         [HttpPut("{id}")]
         [SwaggerOperation(Summary = "Update a membership by ID")]
-        public async Task<IActionResult> UpdateMembership([FromRoute] string id, [FromBody] MembershipRequest membershipRequest)
+        public async Task<IActionResult> UpdateMembership([FromRoute] string id, [FromBody] MembershipUpRes membershipRequest)
         {
             var result = await _membershipService.UpdateMembership(id, membershipRequest);
             return Ok(ApiResponse<MembershipResponse>.OkResponse(result, "Update successful!", "200"));

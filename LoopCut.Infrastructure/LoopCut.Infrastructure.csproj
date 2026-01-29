@@ -19,7 +19,6 @@
   <ItemGroup>
     <Folder Include="DatabaseSettings\" />
     <Folder Include="Implemention\" />
-    <Folder Include="Migrations\" />
   </ItemGroup>
 
   <ItemGroup>
