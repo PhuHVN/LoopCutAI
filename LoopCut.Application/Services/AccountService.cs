@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace LoopCut.Application.Services
@@ -26,6 +27,11 @@ namespace LoopCut.Application.Services
         }
         public async Task<AccountResponse> CreateAccount(AccountRequest account)
         {
+            var emailValidator = "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$";
+            if (!Regex.IsMatch(account.Email, emailValidator))
+            {
+                throw new ArgumentException("Invalid email format.");
+            }
             var existingAccount = await _unitOfWork.GetRepository<Accounts>().FindAsync(x => x.Email.ToLower() == account.Email.ToLower() && x.Status == StatusEnum.Active);
             if (existingAccount != null)
             {

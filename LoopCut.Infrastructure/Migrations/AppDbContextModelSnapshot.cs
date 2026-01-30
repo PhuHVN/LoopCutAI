@@ -95,6 +95,48 @@ namespace LoopCut.Infrastructure.Migrations
                     b.ToTable("memberships", (string)null);
                 });
 
+            modelBuilder.Entity("LoopCut.Domain.Entities.Payment", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Amount")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("MembershipId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("OrderCode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MembershipId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Payments");
+                });
+
             modelBuilder.Entity("LoopCut.Domain.Entities.ServiceDefinitions", b =>
                 {
                     b.Property<string>("Id")
@@ -296,6 +338,25 @@ namespace LoopCut.Infrastructure.Migrations
                     b.ToTable("user_memberships", (string)null);
                 });
 
+            modelBuilder.Entity("LoopCut.Domain.Entities.Payment", b =>
+                {
+                    b.HasOne("LoopCut.Domain.Entities.Membership", "Membership")
+                        .WithMany("Payments")
+                        .HasForeignKey("MembershipId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LoopCut.Domain.Entities.Accounts", "User")
+                        .WithMany("Payments")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Membership");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("LoopCut.Domain.Entities.ServiceDefinitions", b =>
                 {
                     b.HasOne("LoopCut.Domain.Entities.Accounts", null)
@@ -383,6 +444,8 @@ namespace LoopCut.Infrastructure.Migrations
 
                     b.Navigation("ModifiedServices");
 
+                    b.Navigation("Payments");
+
                     b.Navigation("Subcriptions");
 
                     b.Navigation("UserMemberships");
@@ -390,6 +453,8 @@ namespace LoopCut.Infrastructure.Migrations
 
             modelBuilder.Entity("LoopCut.Domain.Entities.Membership", b =>
                 {
+                    b.Navigation("Payments");
+
                     b.Navigation("UserMemberships");
                 });
 

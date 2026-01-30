@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace LoopCut.Application.Interfaces
 {
-    public interface IVietQrService
+    public interface IGeminiService
     {
-        Task<VietQRResponse> GenerateQRCodeAsync(VietQRGenerateRequest request);
+        Task<string> SendMessageAsync(string message);
     }
 }
