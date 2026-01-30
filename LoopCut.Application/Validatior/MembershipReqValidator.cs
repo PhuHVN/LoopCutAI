@@ -17,6 +17,9 @@ namespace LoopCut.Application.Validatior
             RuleFor(x => x.Code)
                 .NotEmpty().WithMessage("Code is required.")
                 .MaximumLength(50).WithMessage("Code cannot exceed 50 characters.");
+            RuleFor(x => x.Price)
+                .GreaterThanOrEqualTo(0).WithMessage("Price must be a non-negative value.");
+
 
         }
     }
