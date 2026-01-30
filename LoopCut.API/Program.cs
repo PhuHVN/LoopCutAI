@@ -26,7 +26,6 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.ImplicitlyValidateChildProperties = true;
 });
-DotNetEnv.Env.Load();
 //Cors
 builder.Services.AddCors(options =>
 {
@@ -169,6 +168,8 @@ var mapperConfig = new MapperConfiguration(cfg =>
 });
 IMapper mapper = mapperConfig.CreateMapper();
 builder.Services.AddSingleton(mapper);
+//read env
+DotNetEnv.Env.Load();
 //Register Gemini Service
 builder.Services.AddSingleton<GeminiService>();
 builder.Services.AddHttpClient<IGeminiService, GeminiService>();
@@ -186,7 +187,7 @@ builder.Configuration.AddEnvironmentVariables();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
