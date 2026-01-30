@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace LoopCut.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class FixSerivceDbName : Migration
+    public partial class SubEmailLog : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -19,6 +19,7 @@ namespace LoopCut.Infrastructure.Migrations
                     Name = table.Column<string>(type: "text", nullable: false),
                     Code = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),
+                    Price = table.Column<decimal>(type: "numeric", nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
@@ -173,6 +174,29 @@ namespace LoopCut.Infrastructure.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "SubscriptionEmailLogs",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    SubscriptionId = table.Column<string>(type: "text", nullable: false),
+                    AccountId = table.Column<string>(type: "text", nullable: false),
+                    Type = table.Column<int>(type: "integer", nullable: false),
+                    SentAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    IsSuccess = table.Column<bool>(type: "boolean", nullable: false),
+                    ErrorMessage = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SubscriptionEmailLogs", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SubscriptionEmailLogs_Subcriptions_SubscriptionId",
+                        column: x => x.SubscriptionId,
+                        principalTable: "Subcriptions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_memberships_Code",
                 table: "memberships",
@@ -215,6 +239,11 @@ namespace LoopCut.Infrastructure.Migrations
                 column: "ServicePlanId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_SubscriptionEmailLogs_SubscriptionId",
+                table: "SubscriptionEmailLogs",
+                column: "SubscriptionId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_user_memberships_MembershipId",
                 table: "user_memberships",
                 column: "MembershipId");
@@ -229,16 +258,19 @@ namespace LoopCut.Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Subcriptions");
+                name: "SubscriptionEmailLogs");
 
             migrationBuilder.DropTable(
                 name: "user_memberships");
 
             migrationBuilder.DropTable(
-                name: "ServicePlans");
+                name: "Subcriptions");
 
             migrationBuilder.DropTable(
                 name: "memberships");
+
+            migrationBuilder.DropTable(
+                name: "ServicePlans");
 
             migrationBuilder.DropTable(
                 name: "Services");

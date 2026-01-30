@@ -19,7 +19,7 @@
   <ItemGroup>
     <Folder Include="DatabaseSettings\" />
     <Folder Include="Implemention\" />
-    <Folder Include="Migrations\" />
+    <Folder Include="Migrations\Constraints\" />
   </ItemGroup>
 
   <ItemGroup>

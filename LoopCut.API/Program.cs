@@ -3,6 +3,7 @@ using FluentValidation.AspNetCore;
 using LoopCut.API;
 using LoopCut.API.Middleware;
 using LoopCut.Application.DTOs;
+using LoopCut.Application.Options;
 using LoopCut.Domain.Enums.EnumConfig;
 using LoopCut.Infrastructure.DatabaseSettings;
 using LoopCut.Infrastructure.Seeder;
@@ -23,7 +24,10 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 }).AddFluentValidation(options =>
 {
     options.ImplicitlyValidateChildProperties = true;
-});
+}); //for fluent validation
+
+// Email Settings
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
 //Cors
 builder.Services.AddCors(options =>

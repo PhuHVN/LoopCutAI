@@ -24,6 +24,8 @@ namespace LoopCut.Infrastructure.DatabaseSettings
 
         public DbSet<ServiceDefinitions> Services { get; set; }
 
+        public DbSet<SubscriptionEmailLog> SubscriptionEmailLogs { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
