@@ -26,7 +26,7 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.ImplicitlyValidateChildProperties = true;
 });
-
+DotNetEnv.Env.Load();
 //Cors
 builder.Services.AddCors(options =>
 {
@@ -180,6 +180,8 @@ builder.Services.AddHttpContextAccessor();
 //Entity Framework + SQL Server
 builder.Services.AddDbContext<AppDbContext>(options
     => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+//AddEnvironmentVariables
+builder.Configuration.AddEnvironmentVariables();
 
 var app = builder.Build();
 
