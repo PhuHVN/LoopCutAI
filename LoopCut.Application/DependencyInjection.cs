@@ -21,6 +21,7 @@ namespace LoopCut.Application
             services.AddScoped<ISubscriptionService, SubscriptionService>();
             services.AddScoped<IPaymentService, PaymentService>();
             services.AddScoped<PayOSClient>();
+            services.AddScoped<IGeminiService, GeminiService>();
 
 
             services.AddValidatorsFromAssemblyContaining(typeof(DependencyInjection));
