@@ -3,6 +3,8 @@ using FluentValidation.AspNetCore;
 using LoopCut.API;
 using LoopCut.API.Middleware;
 using LoopCut.Application.DTOs;
+using LoopCut.Application.Interfaces;
+using LoopCut.Application.Services;
 using LoopCut.Domain.Enums.EnumConfig;
 using LoopCut.Infrastructure.DatabaseSettings;
 using LoopCut.Infrastructure.Seeder;
@@ -167,6 +169,9 @@ var mapperConfig = new MapperConfiguration(cfg =>
 });
 IMapper mapper = mapperConfig.CreateMapper();
 builder.Services.AddSingleton(mapper);
+//Register Gemini Service
+builder.Services.AddSingleton<GeminiService>();
+builder.Services.AddHttpClient<IGeminiService, GeminiService>();
 // Add services to the container.
 builder.Services.AddControllers();
 //Add Dependency Injection
