@@ -12,13 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LoopCut.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-<<<<<<<< HEAD:LoopCut.Infrastructure/Migrations/20260129123931_SubEmailLog.Designer.cs
-    [Migration("20260129123931_SubEmailLog")]
-    partial class SubEmailLog
-========
-    [Migration("20260129064640_initDb")]
-    partial class initDb
->>>>>>>> 08da01ed3a7aa91ebf5f50eb3c2fd3705f761b14:LoopCut.Infrastructure/Migrations/20260129064640_initDb.Designer.cs
+    [Migration("20260130084820_SubEmailLogIndex")]
+    partial class SubEmailLogIndex
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

@@ -5,7 +5,7 @@
 namespace LoopCut.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class Add_EmailLog_UniqueIndexes : Migration
+    public partial class SubEmailLogIndex : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

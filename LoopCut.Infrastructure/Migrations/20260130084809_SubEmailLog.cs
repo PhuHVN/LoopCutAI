@@ -6,11 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace LoopCut.Infrastructure.Migrations
 {
     /// <inheritdoc />
-<<<<<<<< HEAD:LoopCut.Infrastructure/Migrations/20260129123931_SubEmailLog.cs
     public partial class SubEmailLog : Migration
-========
-    public partial class initDb : Migration
->>>>>>>> 08da01ed3a7aa91ebf5f50eb3c2fd3705f761b14:LoopCut.Infrastructure/Migrations/20260129064640_initDb.cs
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -303,14 +299,10 @@ namespace LoopCut.Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-<<<<<<<< HEAD:LoopCut.Infrastructure/Migrations/20260129123931_SubEmailLog.cs
-                name: "SubscriptionEmailLogs");
-========
                 name: "Payments");
 
             migrationBuilder.DropTable(
-                name: "Subcriptions");
->>>>>>>> 08da01ed3a7aa91ebf5f50eb3c2fd3705f761b14:LoopCut.Infrastructure/Migrations/20260129064640_initDb.cs
+                name: "SubscriptionEmailLogs");
 
             migrationBuilder.DropTable(
                 name: "user_memberships");
