@@ -23,6 +23,7 @@ namespace LoopCut.Infrastructure
             services.AddScoped<IServicePlanRepository, ServicePlanRepository>();
             services.AddScoped<IServiceRepository, ServiceRepository>();
             services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
+            services.AddScoped<ISubscriptionEmailLogRepository, SubscriptionEmailLogRepository>();
         }
 
     }

@@ -1,11 +1,15 @@
+using System.Security.Claims;
+using System.Text.Json;
 using AutoMapper;
 using FluentValidation.AspNetCore;
 using LoopCut.API;
 using LoopCut.API.Middleware;
 using LoopCut.Application.DTOs;
 using LoopCut.Application.Interfaces;
+using LoopCut.Application.Options;
 using LoopCut.Application.Services;
 using LoopCut.Domain.Enums.EnumConfig;
+using LoopCut.Infrastructure.BackgroundTasks;
 using LoopCut.Infrastructure.DatabaseSettings;
 using LoopCut.Infrastructure.Seeder;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -13,8 +17,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.OpenApi.Models;
-using System.Security.Claims;
-using System.Text.Json;
 var builder = WebApplication.CreateBuilder(args);
 
 //convert enum to string in json
@@ -25,7 +27,15 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 }).AddFluentValidation(options =>
 {
     options.ImplicitlyValidateChildProperties = true;
-});
+}); //for fluent validation
+
+// Email Settings
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+
+// Background Services
+builder.Services.AddHostedService<SubscriptionEmailWorker>();
+builder.Services.AddHostedService<SubscriptionEmailChecker>();
+
 //Cors
 builder.Services.AddCors(options =>
 {

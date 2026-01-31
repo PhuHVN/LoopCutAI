@@ -17,5 +17,7 @@ namespace LoopCut.Domain.Abstractions
         public IServicePlanRepository ServicePlanRepository { get; }
         public IServiceRepository ServiceRepository { get; }
         public ISubscriptionRepository SubscriptionRepository { get; }
-    }
+
+        public ISubscriptionEmailLogRepository SubscriptionEmailLogRepository { get;}
+        }
 }

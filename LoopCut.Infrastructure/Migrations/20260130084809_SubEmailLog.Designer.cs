@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LoopCut.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260129064640_initDb")]
-    partial class initDb
+    [Migration("20260130084809_SubEmailLog")]
+    partial class SubEmailLog
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -226,6 +226,38 @@ namespace LoopCut.Infrastructure.Migrations
                     b.ToTable("ServicePlans");
                 });
 
+            modelBuilder.Entity("LoopCut.Domain.Entities.SubscriptionEmailLog", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<string>("AccountId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsSuccess")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("SubscriptionId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubscriptionId");
+
+                    b.ToTable("SubscriptionEmailLogs");
+                });
+
             modelBuilder.Entity("LoopCut.Domain.Entities.Subscriptions", b =>
                 {
                     b.Property<string>("Id")
@@ -362,6 +394,17 @@ namespace LoopCut.Infrastructure.Migrations
                     b.Navigation("ServiceDefinition");
                 });
 
+            modelBuilder.Entity("LoopCut.Domain.Entities.SubscriptionEmailLog", b =>
+                {
+                    b.HasOne("LoopCut.Domain.Entities.Subscriptions", "Subscription")
+                        .WithMany("SubscriptionEmailLogs")
+                        .HasForeignKey("SubscriptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Subscription");
+                });
+
             modelBuilder.Entity("LoopCut.Domain.Entities.Subscriptions", b =>
                 {
                     b.HasOne("LoopCut.Domain.Entities.Accounts", "Account")
@@ -426,6 +469,11 @@ namespace LoopCut.Infrastructure.Migrations
             modelBuilder.Entity("LoopCut.Domain.Entities.ServicePlans", b =>
                 {
                     b.Navigation("Subcriptions");
+                });
+
+            modelBuilder.Entity("LoopCut.Domain.Entities.Subscriptions", b =>
+                {
+                    b.Navigation("SubscriptionEmailLogs");
                 });
 #pragma warning restore 612, 618
         }
