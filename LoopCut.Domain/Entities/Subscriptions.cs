@@ -20,4 +20,6 @@ public class Subscriptions
     public required Accounts Account { get; set; }
 
     public ServicePlans? ServicePlan { get; set; }
+
+    public ICollection<SubscriptionEmailLog>? SubscriptionEmailLogs { get; set; } = new List<SubscriptionEmailLog>();
 }

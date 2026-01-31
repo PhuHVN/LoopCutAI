@@ -17,12 +17,15 @@ namespace LoopCut.Infrastructure.Implemention
         public IServiceRepository ServiceRepository { get; private set; }
         public ISubscriptionRepository SubscriptionRepository { get; private set; }
 
+        public ISubscriptionEmailLogRepository SubscriptionEmailLogRepository { get; private set; }
+
         public UnitOfWork(
             AppDbContext context, 
             IAccountRepository accountRepository,
             IServicePlanRepository servicePlanRepository,
             IServiceRepository serviceRepository,
-            ISubscriptionRepository subscriptionRepository)
+            ISubscriptionRepository subscriptionRepository,
+            ISubscriptionEmailLogRepository subscriptionEmailLogRepository)
         {
             _context = context;
             repositories = new Dictionary<Type, object>();
@@ -30,6 +33,7 @@ namespace LoopCut.Infrastructure.Implemention
             ServicePlanRepository = servicePlanRepository;
             ServiceRepository = serviceRepository;
             SubscriptionRepository = subscriptionRepository;
+            SubscriptionEmailLogRepository = subscriptionEmailLogRepository;
         }
         public async Task BeginTransactionAsync()
         {
