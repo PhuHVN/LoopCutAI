@@ -16,23 +16,30 @@ namespace LoopCut.Application.Services
         private readonly HttpClient _httpClient;
         private readonly string _apiKey;
         private readonly IHandleChatService _handleChatService;
-        private readonly string _systemPrompt;
+        private string _systemPrompt = string.Empty;
 
         public GeminiService(HttpClient httpClient, IConfiguration config, IHandleChatService handleChatService)
         {
             _httpClient = httpClient;
             _handleChatService = handleChatService;
             _apiKey = config["Gemini:ApiKey"]!;
-            _systemPrompt = LoadSystemPrompt();
+           
         }
-        private static string LoadSystemPrompt()
+        public async Task InitializeAsync()
         {
-            var assembly = typeof(GeminiService).Assembly;
-            var resourceName = "C:\\FPTU\\SP26\\EXE202\\LoopCutAI\\LoopCut.Application\\Prompt\\prompt.txt";
+            _systemPrompt = await LoadSystemPrompt();
+        }
+        private static async Task<string> LoadSystemPrompt()
+        {
+            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            var filePath = Path.Combine(baseDir, "Prompt", "prompt.txt");
 
-            using var stream = new FileStream(resourceName, FileMode.Open, FileAccess.Read);
-            using var reader = new StreamReader(stream);
-            return reader.ReadToEnd();
+            if (!File.Exists(filePath))
+            {
+                throw new FileNotFoundException("System prompt file not found.", filePath);
+            }
+
+            return await File.ReadAllTextAsync(filePath);
         }
 
         private async Task<string> CallGeminiAsync(string message)
