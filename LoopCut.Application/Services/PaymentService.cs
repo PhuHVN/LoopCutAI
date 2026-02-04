@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using LoopCut.Application.DTOs.PaymentDTO;
 using LoopCut.Application.DTOs.PayOsDto;
+using LoopCut.Application.DTOs.UserMembershipDtos;
 using LoopCut.Application.Interfaces;
 using LoopCut.Domain.Abstractions;
 using LoopCut.Domain.Entities;
@@ -24,9 +25,10 @@ namespace LoopCut.Application.Services
         private readonly IUnitOfWork unitOfWork;
         private readonly IConfiguration _configuration;
         private readonly ILogger<PaymentService> _logger;
+        private readonly IUserMembershipService _userMembershipService;
         private readonly IMapper mapper;
 
-        public PaymentService(IConfiguration configuration, IUnitOfWork unitOfWork, ILogger<PaymentService> logger, IMapper mapper)
+        public PaymentService(IConfiguration configuration, IUnitOfWork unitOfWork, ILogger<PaymentService> logger, IMapper mapper, IUserMembershipService userMembershipService)
         {
             _payOSClient = new PayOSClient(
                 configuration["PayOS:ClientId"]!,
@@ -35,6 +37,7 @@ namespace LoopCut.Application.Services
             );
             this.unitOfWork = unitOfWork;
             _configuration = configuration;
+            _userMembershipService = userMembershipService;
             _logger = logger;
             this.mapper = mapper;
         }
@@ -72,8 +75,15 @@ namespace LoopCut.Application.Services
                 Status = PaymentStatusEnum.Pending,
                 CreatedAt = DateTime.UtcNow,
             };
+            var userMembershipRes = new UserMembershipRequest
+            {
+                UserId = request.UserId,
+                MembershipId = request.MembershipId,
+                StartDate = DateTime.UtcNow,
+                EndDate = DateTime.UtcNow.AddMonths(1)
+            };
             var result = await _payOSClient.PaymentRequests.CreateAsync(paymentRequest);
-
+            var userMembershipServ = await _userMembershipService.AssignMembershipToUser(userMembershipRes);
             await unitOfWork.GetRepository<Payment>().InsertAsync(payment);
             await unitOfWork.SaveChangesAsync();
             return new PaymentResponsed

@@ -74,7 +74,16 @@ namespace LoopCut.Application.Services
             }
             return mapper.Map<MembershipResponse>(membership);
         }
-
+        public async Task<MembershipResponse> GetMembershipByName(string name)
+        {
+            var membership = await _unitOfWork.GetRepository<Membership>()
+                .FindAsync(m => m.Name.ToLower() == name.ToLower() && m.Status == StatusEnum.Active);
+            if (membership == null)
+            {
+                throw new Exception("Membership not found");
+            }
+            return mapper.Map<MembershipResponse>(membership);
+        }
         public async Task<MembershipResponse> UpdateMembership(string id, MembershipUpRes membership)
         {
             var existingMembership = await _unitOfWork.GetRepository<Membership>()

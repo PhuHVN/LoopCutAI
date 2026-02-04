@@ -29,8 +29,11 @@ namespace LoopCut.Application.DTOs
                 .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.User.PhoneNumber))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.User.CreatedAt))
                 .ForMember(dest => dest.LastUpdatedAt, opt => opt.MapFrom(src => src.User.LastUpdatedAt))
-                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.User.Role));
-
+                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.User.Role))
+                .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate))
+                .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => src.EndDate))
+                ;
+                
             CreateMap<Membership, MembershipDetail>()
                 .ForMember(d => d.MembershipId, opt => opt.MapFrom(s => s.Id));
             CreateMap<Payment, PaymentDetailResponse>()

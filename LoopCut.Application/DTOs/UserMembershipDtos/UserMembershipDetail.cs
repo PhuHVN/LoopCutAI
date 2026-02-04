@@ -19,6 +19,8 @@ namespace LoopCut.Application.DTOs.UserMembershipDtos
         public RoleEnum Role { get; set; }
         public StatusEnum Status { get; set; } = StatusEnum.Active;
         public MembershipDetail Membership { get; set; } = new MembershipDetail();
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
     }
     public class MembershipDetail
     {
