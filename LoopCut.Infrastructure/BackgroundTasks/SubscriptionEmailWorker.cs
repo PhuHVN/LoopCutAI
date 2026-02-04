@@ -74,18 +74,29 @@ namespace LoopCut.Infrastructure.BackgroundTasks
 
                     // Send email based on subscriptionEmailType
 
-                    switch (subscriptionEmailType)
+                    try
                     {
-                        case SubscriptionEmailType.DailyReminder:
-                            await emailService.SendSubscriptionReminderEmailAsync(sub);
-                            break;
-                        case SubscriptionEmailType.ExpiredNotice:
-                            await emailService.SendSubscriptionExpiredEmailAsync(sub);
-                            break;
+                        switch (subscriptionEmailType)
+                        {
+                            case SubscriptionEmailType.DailyReminder:
+                                await emailService.SendSubscriptionReminderEmailAsync(sub);
+                                break;
+                            case SubscriptionEmailType.ExpiredNotice:
+                                await emailService.SendSubscriptionExpiredEmailAsync(sub);
+                                break;
+                        }
+                        emailLog.IsSuccess = true;
+                        await dbContext.SaveChangesAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        emailLog.ErrorMessage = ex.Message;
+                        _logger.LogError(ex, "Error sending email for Subscription ID: {SubscriptionId}", sub.Id);
+                        dbContext.SubscriptionEmailLogs.Remove(emailLog);
+                        await dbContext.SaveChangesAsync();
                     }
 
-                    emailLog.IsSuccess = true;
-                    await dbContext.SaveChangesAsync();
+
                 }
                 catch (DbUpdateException ex)
                 {
@@ -111,7 +122,13 @@ namespace LoopCut.Infrastructure.BackgroundTasks
                         s.EndDate != null
                         && s.Status == SubscriptionEnums.Active
                         && s.EndDate > now
-                        && s.EndDate <= now.AddDays(s.RemiderDays + 1))
+                        && s.EndDate <= now.AddDays(s.RemiderDays)
+                        && !context.SubscriptionEmailLogs.Any(log =>
+                            log.SubscriptionId == s.Id
+                            && log.Type == SubscriptionEmailType.DailyReminder
+                            && log.SentAt >= now.Date)
+
+                        )
                         .ToListAsync();
 
 
@@ -119,7 +136,12 @@ namespace LoopCut.Infrastructure.BackgroundTasks
                     return await context.Subcriptions
                         .Where(s => s.EndDate != null
                         && (s.Status == SubscriptionEnums.Active || s.Status == SubscriptionEnums.Expired)
-                        && s.EndDate <= now)
+                        && s.EndDate <= now
+                        && !context.SubscriptionEmailLogs.Any(log =>
+                            log.SubscriptionId == s.Id
+                            && log.Type == SubscriptionEmailType.ExpiredNotice
+                            && log.SentAt >= now.Date)
+                        )
 
                         .ToListAsync();
                 default:

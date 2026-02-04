@@ -1,11 +1,13 @@
 ﻿using LoopCut.Application.DTOs.ChatDTO;
 using LoopCut.Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LoopCut.API.Controllers
 {
     [Route("api/v1/chat")]
+    [Authorize]
     [ApiController]
     public class ChatController : ControllerBase
     {

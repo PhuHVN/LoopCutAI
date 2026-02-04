@@ -14,6 +14,7 @@ namespace LoopCut.Application.Interfaces
         Task<MembershipResponse> UpdateMembership(string id, MembershipUpRes membership);
         Task<MembershipResponse> GetMembershipById(string id);
         Task<BasePaginatedList<MembershipResponse>> GetAllMemberships(int pageIndex, int pageSize);
+        Task<MembershipResponse> GetMembershipByName(string name);
         Task DeleteMembership(string id);
     }
 }
