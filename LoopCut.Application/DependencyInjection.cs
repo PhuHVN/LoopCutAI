@@ -23,7 +23,7 @@ namespace LoopCut.Application
             services.AddScoped<PayOSClient>();
             services.AddScoped<IGeminiService, GeminiService>();
             services.AddScoped<IEmailService, EmailService>();
-
+            services.AddScoped<IHandleChatService, HandleChatService>();
 
             services.AddValidatorsFromAssemblyContaining(typeof(DependencyInjection));
         }
