@@ -26,14 +26,14 @@ namespace LoopCut.API.Controllers
             return Ok(ApiResponse<UserMembershipResponse>.OkResponse(result, "User assigned to membership successfully", "200"));
         }
 
-        [HttpPatch("expire_membership")]
+        [HttpPatch("expire")]
         [SwaggerOperation(Summary = "Expire a user's membership")]
         public async Task<IActionResult> ExpireUserMembership(string userId, string membershipId)
         {
             var result = await _service.ExpireMembershipFromUser(userId, membershipId);
             return Ok(ApiResponse<UserMembershipResponse>.OkResponse(result, "User membership expired successfully", "200"));
         }
-        [HttpPatch("activate_membership")]
+        [HttpPatch("activate")]
         [SwaggerOperation(Summary = "Activate a user's membership")]
         public async Task<IActionResult> ActiveUserMembership(string userId, string membershipId)
         {
@@ -41,7 +41,7 @@ namespace LoopCut.API.Controllers
             return Ok(ApiResponse<UserMembershipResponse>.OkResponse(result, "User membership activated successfully", "200"));
         }
 
-        [HttpGet("get_user_memberships")]
+        [HttpGet("get/user")]
         [SwaggerOperation(Summary = "Get all user memberships with pagination")]
         public async Task<IActionResult> GetUserMemberships(int pageIndex = 1, int pageSize = 10)
         {
@@ -49,21 +49,21 @@ namespace LoopCut.API.Controllers
             return Ok(ApiResponse<BasePaginatedList<UserMembershipResponse>>.OkResponse(result, "User memberships retrieved successfully", "200"));
         }
 
-        [HttpPut("update_membership")]
+        [HttpPut("update")]
         [SwaggerOperation(Summary = "Update a user's membership details")]
         public async Task<IActionResult> UpdateUserMembership([FromBody] UserMembershipRequest request)
         {
             var result = await _service.UpdateMembershipToUser(request);
             return Ok(ApiResponse<UserMembershipResponse>.OkResponse(result, "User membership updated successfully", "200"));
         }
-        [HttpPost("renew_membership")]
+        [HttpPost("renew")]
         [SwaggerOperation(Summary = "Renew a user's membership")]
         public async Task<IActionResult> RenewUserMembership([FromBody] RenewRequest renew)
         {
             var result = await _service.RenewMembershipToUser(renew);
             return Ok(ApiResponse<UserMembershipResponse>.OkResponse(result, "User membership renewed successfully", "200"));
         }
-        [HttpGet("active_membership/{userId}")]
+        [HttpGet("detail/user/{userId}")]
         [SwaggerOperation(Summary = "Get active membership details for a user")]
         public async Task<IActionResult> GetActiveMembershipByUserId(string userId)
         {

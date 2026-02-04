@@ -47,7 +47,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(option =>
 {
     option.EnableAnnotations();
-    option.SwaggerDoc("v1", new OpenApiInfo { Title = "LootCutAI API", Version = "v1" });
+    option.SwaggerDoc("v1", new OpenApiInfo { Title = "LoopCutAI API", Version = "v1" });
 
     option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -181,7 +181,7 @@ builder.Services.AddSingleton(mapper);
 //read env
 DotNetEnv.Env.Load();
 //Register Gemini Service
-builder.Services.AddSingleton<GeminiService>();
+builder.Services.AddScoped<GeminiService>();
 builder.Services.AddHttpClient<IGeminiService, GeminiService>();
 // Add services to the container.
 builder.Services.AddControllers();
