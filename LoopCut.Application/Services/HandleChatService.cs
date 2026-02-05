@@ -53,6 +53,7 @@ namespace LoopCut.Application.Services
             return $"Mình tìm thấy rồi! Đây là thông tin gói {memberships.Name}:\n\n" +
                    $"Giá: {memberships.Price:N0} VNĐ/tháng\n" +
                    $"Mô tả: {memberships.Description}\n\n" +
+                   $"Thời gian: {memberships.DurationInMonths} tháng\n\n" +
                    $"Bạn có muốn đăng ký gói này không?";
         }
 
@@ -68,7 +69,8 @@ namespace LoopCut.Application.Services
             foreach (var item in memberships.Items)
             {
                 response += $"- {item.Name}: {item.Price:N0} VNĐ/tháng\n" +
-                            $"  Mô tả: {item.Description}\n\n";
+                            $"  Mô tả: {item.Description}\n\n" +
+                            $"  Thời gian: {item.DurationInMonths} tháng\n\n";
             }
             response += "Bạn có muốn mình tư vấn thêm về các gói này không?";
             return response;
@@ -98,6 +100,7 @@ namespace LoopCut.Application.Services
             var response = $"Đây là thông tin membership của bạn:\n\n" +
                           $"Gói: {userMemberships.Membership.Name}\n" +
                           $"Giá: {userMemberships.Membership.Price:N0} VNĐ/tháng\n" +
+                          $"Thời lượng: {userMemberships.Membership.DurationInMonths} tháng\n" +
                           $"Thời gian: {userMemberships.StartDate:dd/MM/yyyy} đến {userMemberships.EndDate:dd/MM/yyyy}\n" +
                           $"Trạng thái: {statusText}";
 

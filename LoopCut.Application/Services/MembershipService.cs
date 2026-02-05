@@ -114,6 +114,11 @@ namespace LoopCut.Application.Services
                 existingMembership.Description = membership.Description;
                 isUpdate = true;
             }
+            if(membership.DurationInMonths > 0 && existingMembership.DurationInMonths != membership.DurationInMonths)
+            {
+                existingMembership.DurationInMonths = membership.DurationInMonths;
+                isUpdate = true;
+            }
             if (!isUpdate)
             {
                 throw new Exception("No changes detected to update.");
