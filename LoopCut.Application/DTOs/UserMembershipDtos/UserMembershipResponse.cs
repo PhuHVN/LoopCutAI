@@ -14,6 +14,7 @@ namespace LoopCut.Application.DTOs.UserMembershipDtos
         public string FullName { get; set; } = string.Empty;
         public string MembershipId { get; set; } = string.Empty;
         public string MembershipName { get; set; } = string.Empty;
+        public int DurationInMonths { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public StatusEnum Status { get; set; }
