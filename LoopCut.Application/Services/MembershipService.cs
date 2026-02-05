@@ -36,6 +36,7 @@ namespace LoopCut.Application.Services
                 Code = membership.Code,
                 Price = membership.Price,
                 Description = membership.Description,
+                DurationInMonths = membership.DurationInMonths,
                 Status = StatusEnum.Active
             };
             await _unitOfWork.GetRepository<Membership>().InsertAsync(newMembership);
@@ -111,6 +112,11 @@ namespace LoopCut.Application.Services
             if(!string.IsNullOrEmpty(membership.Description) && existingMembership.Description != membership.Description)
             {
                 existingMembership.Description = membership.Description;
+                isUpdate = true;
+            }
+            if(membership.DurationInMonths > 0 && existingMembership.DurationInMonths != membership.DurationInMonths)
+            {
+                existingMembership.DurationInMonths = membership.DurationInMonths;
                 isUpdate = true;
             }
             if (!isUpdate)

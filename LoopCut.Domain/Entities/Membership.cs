@@ -15,6 +15,7 @@ namespace LoopCut.Domain.Entities
         public string Name { get; set; } = string.Empty;
         public string Code { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
+        public int DurationInMonths { get; set; }
         public decimal Price { get; set; }
         public StatusEnum Status { get; set; } 
         public ICollection<UserMembership> UserMemberships { get; set; } = new List<UserMembership>();
