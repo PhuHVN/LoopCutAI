@@ -9,10 +9,18 @@ namespace LoopCut.Application.Interfaces
 {
     public interface IHandleChatService
     {
-        Task<string> HandleMembershipUserAsync(AiCommand command);
+        //Handle Membership
+        Task<string> HandleMembershipUserAsync(AiCommand command); 
+        Task<string> HandleMembershipListAsync(AiCommand command);
+        Task<string> HandleMembershipCompareAsync(AiCommand command);
         Task<string> HandleMembershipInfoAsync(AiCommand command);
-        Task<string> HandleUnknownAsync(AiCommand command);
+        //Handle Subscription
         Task<string> HandleSubscriptionAsync(AiCommand command);
+        Task<string> HandleSubscriptionPlansAsync(AiCommand command);
+        //Handle Unknown
+        Task<string> HandleUnknownAsync(AiCommand command);
+        //Handle Payment
+        Task<string> HandlePaymentHistoryAsync(AiCommand command);
     }
 
 }

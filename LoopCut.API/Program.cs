@@ -193,7 +193,8 @@ builder.Services.AddDbContext<AppDbContext>(options
     => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 //AddEnvironmentVariables
 builder.Configuration.AddEnvironmentVariables();
-
+//Cache
+builder.Services.AddMemoryCache();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
