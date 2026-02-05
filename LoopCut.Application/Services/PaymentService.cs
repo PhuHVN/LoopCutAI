@@ -61,7 +61,7 @@ namespace LoopCut.Application.Services
             {
                 OrderCode = orderCode,
                 Amount = (long)membership.Price,
-                Description = $"Payment for {membership.Name} _ {membership.Price} VND ",
+                Description = $"Membership {membership.Name} _ {membership.Price} VND ",
                 ReturnUrl = _configuration["PayOs:ReturnUrl"]!,
                 CancelUrl = _configuration["PayOs:CancelUrl"]!
             };
@@ -75,15 +75,9 @@ namespace LoopCut.Application.Services
                 Status = PaymentStatusEnum.Pending,
                 CreatedAt = DateTime.UtcNow,
             };
-            var userMembershipRes = new UserMembershipRequest
-            {
-                UserId = request.UserId,
-                MembershipId = request.MembershipId,
-                StartDate = DateTime.UtcNow,
-                EndDate = DateTime.UtcNow.AddMonths(1)
-            };
+            
             var result = await _payOSClient.PaymentRequests.CreateAsync(paymentRequest);
-            var userMembershipServ = await _userMembershipService.AssignMembershipToUser(userMembershipRes);
+            
             await unitOfWork.GetRepository<Payment>().InsertAsync(payment);
             await unitOfWork.SaveChangesAsync();
             return new PaymentResponsed
@@ -140,6 +134,7 @@ namespace LoopCut.Application.Services
                 {
                     case "00":
                         await UpdatePayment(data.OrderCode.ToString(), PaymentStatusEnum.Completed);
+
                         _logger.LogInformation("Payment completed for OrderCode: {OrderCode}", data.OrderCode);
                         break;
                     case "01":
@@ -169,10 +164,22 @@ namespace LoopCut.Application.Services
 
         private async Task UpdatePayment(string OrderId, PaymentStatusEnum status)
         {
-            var payment = await unitOfWork.GetRepository<Payment>().FindAsync(x => x.OrderCode == OrderId);
+            var payment = await unitOfWork.GetRepository<Payment>().FindAsync(x => x.OrderCode == OrderId, include: x => x.Include(y => y.Membership));
             if (payment == null)
             {
                 throw new KeyNotFoundException("Payment not found");
+            }
+            if(status == PaymentStatusEnum.Completed && payment.Status != PaymentStatusEnum.Completed)
+            {
+                var userMembershipRes = new UserMembershipRequest
+                {
+                    UserId = payment.UserId,
+                    MembershipId = payment.MembershipId,
+                    StartDate = DateTime.UtcNow,
+                    EndDate = DateTime.UtcNow.AddMonths(payment.Membership.DurationInMonths)
+
+                };
+                await _userMembershipService.AssignMembershipToUser(userMembershipRes);
             }
             payment.Status = status;
             payment.UpdatedAt = DateTime.UtcNow;

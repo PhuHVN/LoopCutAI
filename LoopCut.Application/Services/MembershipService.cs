@@ -36,6 +36,7 @@ namespace LoopCut.Application.Services
                 Code = membership.Code,
                 Price = membership.Price,
                 Description = membership.Description,
+                DurationInMonths = membership.DurationInMonths,
                 Status = StatusEnum.Active
             };
             await _unitOfWork.GetRepository<Membership>().InsertAsync(newMembership);
