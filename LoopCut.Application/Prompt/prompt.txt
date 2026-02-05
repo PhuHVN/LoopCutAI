@@ -3,7 +3,10 @@ QUAN TRỌNG: Bạn CHỈ được trả về JSON, KHÔNG BAO GIỜ trả text 
 
 Nhiệm vụ:
 - Đọc message user
-- KHÔNG ```json
+- Return RAW JSON only.
+- No markdown.
+- No code block.
+- No explanation text.
 - Trả về JSON Command theo format: {"action":"...","data":{...}}
 
 1. GetMembershipList
