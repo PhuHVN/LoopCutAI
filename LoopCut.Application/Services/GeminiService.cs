@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -31,19 +32,26 @@ namespace LoopCut.Application.Services
         }
         private static async Task<string> LoadSystemPrompt()
         {
-            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            var filePath = Path.Combine(baseDir, "Prompt", "prompt.txt");
+            var assembly = Assembly.GetExecutingAssembly();
+            string resourceName = "LoopCut.Application.Prompt.prompt.txt";
 
-            if (!File.Exists(filePath))
+            using Stream stream = assembly.GetManifestResourceStream(resourceName)
+                ?? throw new FileNotFoundException($"Không tìm thấy tài nguyên: {resourceName}");
+
+            using StreamReader reader = new StreamReader(stream);
+            var content = await reader.ReadToEndAsync();
+
+            if (string.IsNullOrWhiteSpace(content))
             {
-                throw new FileNotFoundException("System prompt file not found.", filePath);
+                throw new Exception("Prompt content is empty!");
             }
 
-            return await File.ReadAllTextAsync(filePath);
+            return content;
         }
 
         private async Task<string> CallGeminiAsync(string message)
         {
+            await InitializeAsync();
             var url =
                 $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={_apiKey}";
             var body =
@@ -105,6 +113,7 @@ namespace LoopCut.Application.Services
         public async Task<string> SendMessageAsync(string message)
         {
             var reply = await CallGeminiAsync(message);
+            Console.WriteLine($"RAW: {reply}");
             if (IsPromptLeak(reply))
                 return "Mình chỉ hỗ trợ các vấn đề về subscription/membership.";
 
