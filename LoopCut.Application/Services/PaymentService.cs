@@ -61,7 +61,7 @@ namespace LoopCut.Application.Services
             {
                 OrderCode = orderCode,
                 Amount = (long)membership.Price,
-                Description = $"Membership {membership.Name} _ {membership.Price} VND ",
+                Description = $"{membership.Name}_{membership.Price}",
                 ReturnUrl = _configuration["PayOs:ReturnUrl"]!,
                 CancelUrl = _configuration["PayOs:CancelUrl"]!
             };

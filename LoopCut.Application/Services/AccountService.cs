@@ -84,7 +84,7 @@ namespace LoopCut.Application.Services
             return mapper.Map<BasePaginatedList<AccountResponse>>(rs);
         }
 
-        public async Task<AccountResponse> UpdateAccount(string id, AccountRequest account)
+        public async Task<AccountResponse> UpdateAccount(string id, AccountUpRequest account)
         {
             var existingAccount = await _unitOfWork.GetRepository<Accounts>().FindAsync(x => x.Id == id && x.Status == StatusEnum.Active);
             if (existingAccount == null)

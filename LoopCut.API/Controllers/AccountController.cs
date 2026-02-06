@@ -41,7 +41,7 @@ namespace LoopCut.API.Controllers
         }
         [HttpPut("{id}")]
         [SwaggerOperation(Summary = "Update account", Description = "Updates the details of an existing user account.")]
-        public async Task<IActionResult> UpdateAccount(string id, AccountRequest account)
+        public async Task<IActionResult> UpdateAccount(string id, AccountUpRequest account)
         {
             var result = await _accountService.UpdateAccount(id, account);
             return Ok(ApiResponse<AccountResponse>.OkResponse(result,"Update account successful!","200"));

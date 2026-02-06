@@ -15,7 +15,7 @@ namespace LoopCut.Application.Interfaces
         Task<string> HandleMembershipCompareAsync(AiCommand command);
         Task<string> HandleMembershipInfoAsync(AiCommand command);
         //Handle Subscription
-        Task<string> HandleSubscriptionAsync(AiCommand command);
+        Task<string> HandleSubscriptionHistoryAsync(AiCommand command);
         Task<string> HandleSubscriptionPlansAsync(AiCommand command);
         //Handle Unknown
         Task<string> HandleUnknownAsync(AiCommand command);

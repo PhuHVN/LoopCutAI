@@ -15,13 +15,15 @@ namespace LoopCut.Application.Services
         private readonly IMembershipService _membershipService;
         private readonly IPaymentService _paymentService;
         private readonly IUserMembershipService _userMembershipService;
+        private readonly ISubscriptionService _subscriptionService;
 
-        public HandleChatService(IUserService userService, IMembershipService membershipService, IPaymentService paymentService, IUserMembershipService userMembershipService)
+        public HandleChatService(IUserService userService, IMembershipService membershipService, IPaymentService paymentService, IUserMembershipService userMembershipService, ISubscriptionService subscriptionService)
         {
             user = userService;
             _membershipService = membershipService;
             _paymentService = paymentService;
             _userMembershipService = userMembershipService;
+            _subscriptionService = subscriptionService;
         }
 
         public Task<string> HandleMembershipCompareAsync(AiCommand command)
@@ -150,23 +152,22 @@ namespace LoopCut.Application.Services
             return response;
         }
 
-        public async Task<string> HandleSubscriptionAsync(AiCommand command)
+        public async Task<string> HandleSubscriptionHistoryAsync(AiCommand command)
         {
-            if (!command.Data.TryGetProperty("email", out var emailProp))
-            {
-                return "Để kiểm tra thông tin đăng ký, mình cần email của bạn. Bạn có thể cho mình biết email không?";
+            var subscription = await _subscriptionService.GetAllSubscriptionsByUserLoginAsync(1,10);
+            if (subscription == null) {
+                return $"Bạn có thể kiểm tra lại email hoặc hỏi mình về các gói đăng ký có sẵn nha!";
             }
-
-            var email = emailProp.GetString();
-
-            if (string.IsNullOrEmpty(email))
+            var response = $"Mình tìm thấy rồi! Đây là thông tin gói đăng ký của bạn:\n\n";
+            foreach (var item in subscription.Items)
             {
-                return "Email này có vẻ không hợp lệ. Bạn kiểm tra lại giúp mình nhé!";
+                response += $"- Tên gói đăng ký: {item.SubscriptionsName}\n" +
+                            $"- Giá: {item.Price:N0} VNĐ\n" +
+                            $"- Ngày bắt đầu: {item.StartDate:dd/MM/yyyy}\n" +
+                            $"- Ngày kết thúc: {(item.EndDate.HasValue ? item.EndDate.Value.ToString("dd/MM/yyyy") : "Vô hạn")}\n" +
+                            $"- Trạng thái: {item.Status}\n\n";
             }
-
-            // TODO: Implement subscription check
-            return $"Mình đang kiểm tra thông tin đăng ký cho email {email}. " +
-                   $"Chức năng này đang được phát triển. Bạn có thể liên hệ bộ phận hỗ trợ để được tư vấn trực tiếp nhé!";
+            return response;
         }
 
         public Task<string> HandleSubscriptionPlansAsync(AiCommand command)
