@@ -89,7 +89,7 @@ namespace LoopCut.Application.Services
                 throw;
             }
         }
-        }
+        
 
         public async Task<BasePaginatedList<UserMembershipResponse>> GetUserMemberships(int pageIndex, int pageSize)
         {
