@@ -93,9 +93,17 @@ namespace LoopCut.Application.Services
 
         public async Task<AuthResponse> LoginGoogle(LoginGoogleRequest login)
         {
+            if (string.IsNullOrWhiteSpace(login?.IdToken))
+            {
+                throw new ArgumentException("Google ID token is required", nameof(login.IdToken));
+            }
             try
             {
-                var payload = await GoogleJsonWebSignature.ValidateAsync(login.IdToken);
+                var payload = await GoogleJsonWebSignature.ValidateAsync(login.IdToken,
+                    new GoogleJsonWebSignature.ValidationSettings
+                    {
+                        Audience = new[] { _configuration["Authentication:Google:ClientId"] }
+                    });
                 var email = payload.Email;
                 var fullName = payload.Name;
                 var existingAccount = await _unitOfWork.GetRepository<Accounts>()
