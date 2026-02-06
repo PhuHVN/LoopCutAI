@@ -57,13 +57,15 @@ namespace LoopCut.Application.Services
             {
                 throw new KeyNotFoundException("Membership not found");
             }
+            string baseUrl = !string.IsNullOrEmpty(request.ReturnUrlDomain) 
+                ? request.ReturnUrlDomain : _configuration["PayOs:Url"]!;
             var paymentRequest = new CreatePaymentLinkRequest
             {
                 OrderCode = orderCode,
                 Amount = (long)membership.Price,
                 Description = $"{membership.Name}_{membership.Price}",
-                ReturnUrl = _configuration["PayOs:ReturnUrl"]!,
-                CancelUrl = _configuration["PayOs:CancelUrl"]!
+                ReturnUrl = $"{baseUrl}/payment/success",
+                CancelUrl = $"{baseUrl}/payment/cancel"
             };
             var payment = new Payment
             {
