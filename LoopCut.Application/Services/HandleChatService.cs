@@ -132,7 +132,9 @@ namespace LoopCut.Application.Services
             var userId = userInfo.Id;
             var filter = new PaymentFilterRequest
             {
-                UserId = userId
+                UserId = userId,
+                Status = Domain.Enums.PaymentStatusEnum.Completed
+
             };
             var payments = await _paymentService.GetAllPayments(1, 5,filter);
             if (payments.TotalItems == 0)
@@ -146,7 +148,7 @@ namespace LoopCut.Application.Services
                 response += $"- Mã đơn hàng: {item.OrderId}\n" +
                             $"- Gói: {item.MembershipName}\n" +
                             $"- Số tiền: {item.Price:N0} VNĐ\n" +
-                            $"- Ngày thanh toán: {item.CreatedAt:dd/MM/yyyy}\n" +
+                            $"- Ngày thanh toán: {item.CreatedAt:dd/MM/yyyy-HH:mm}\n" +
                             $"- Trạng thái: {item.Status}\n\n";
             }
             return response;
@@ -170,9 +172,23 @@ namespace LoopCut.Application.Services
             return response;
         }
 
-        public Task<string> HandleSubscriptionPlansAsync(AiCommand command)
+        public async Task<string> HandleSubscriptionStatusAsync(AiCommand command)
         {
-            throw new NotImplementedException();
+            var subscription = await _subscriptionService.GetSubscriptionStatusByUserLoginAsync(1, 10);
+            if (subscription == null)
+            {
+                return $"Bạn có thể kiểm tra lại email hoặc hỏi mình về các gói đăng ký có sẵn nha!";
+            }
+            var response = $"Mình tìm thấy rồi! Đây là thông tin gói đăng ký của bạn:\n\n";
+            foreach (var item in subscription.Items)
+            {
+                response += $"- Tên gói đăng ký: {item.SubscriptionsName}\n" +
+                            $"- Giá: {item.Price:N0} VNĐ\n" +
+                            $"- Ngày bắt đầu: {item.StartDate:dd/MM/yyyy}\n" +
+                            $"- Ngày kết thúc: {(item.EndDate.HasValue ? item.EndDate.Value.ToString("dd/MM/yyyy") : "Vô hạn")}\n" +
+                            $"- Trạng thái: {item.Status}\n\n";
+            }
+            return response;
         }
 
         public async Task<string> HandleUnknownAsync(AiCommand command)
