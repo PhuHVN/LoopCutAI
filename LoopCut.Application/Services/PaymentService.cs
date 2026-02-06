@@ -6,6 +6,7 @@ using LoopCut.Application.Interfaces;
 using LoopCut.Domain.Abstractions;
 using LoopCut.Domain.Entities;
 using LoopCut.Domain.Enums;
+using MailKit.Search;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -122,69 +123,104 @@ namespace LoopCut.Application.Services
 
         public async Task<bool> VerifyPaymentWebhook(Webhook webhookData)
         {
+             await unitOfWork.BeginTransactionAsync();
             try
             {
                 var data = await _payOSClient.Webhooks.VerifyAsync(webhookData);
-                var existingPayment = await unitOfWork.GetRepository<Payment>().FindAsync(x => x.OrderCode == data.OrderCode.ToString());
-                if (existingPayment != null && (existingPayment.Status == PaymentStatusEnum.Completed || existingPayment.Status == PaymentStatusEnum.Failed))
+
+                var existingPayment = await unitOfWork.GetRepository<Payment>()
+                    .Entity
+                    .Where(x => x.OrderCode == data.OrderCode.ToString())
+                    .FirstOrDefaultAsync();
+
+                if (existingPayment == null)
+                {
+                    _logger.LogWarning("Payment not found for OrderCode: {OrderCode}", data.OrderCode);
+                    await unitOfWork.RollBackAsync();
+                    return false;
+                }
+
+                if (existingPayment.Status == PaymentStatusEnum.Completed ||
+                    existingPayment.Status == PaymentStatusEnum.Failed)
                 {
                     _logger.LogWarning("Webhook already processed for OrderCode: {OrderCode}. Current status: {Status}",
                         data.OrderCode, existingPayment.Status);
-                    return true;
+                    await unitOfWork.CommitTransactionAsync();
+                    return true; 
                 }
+
                 switch (data.Code)
                 {
                     case "00":
-                        await UpdatePayment(data.OrderCode.ToString(), PaymentStatusEnum.Completed);
-
+                        await UpdatePaymentWithTransaction(data.OrderCode.ToString(), PaymentStatusEnum.Completed);
                         _logger.LogInformation("Payment completed for OrderCode: {OrderCode}", data.OrderCode);
                         break;
                     case "01":
-                        await UpdatePayment(data.OrderCode.ToString(), PaymentStatusEnum.Failed);
+                        await UpdatePaymentWithTransaction(data.OrderCode.ToString(), PaymentStatusEnum.Failed);
                         _logger.LogInformation("Payment failed for OrderCode: {OrderCode}", data.OrderCode);
                         break;
                     case "02":
-                        await UpdatePayment(data.OrderCode.ToString(), PaymentStatusEnum.Process);
-                        _logger.LogInformation("Payment pending for OrderCode: {OrderCode}", data.OrderCode);
+                        await UpdatePaymentWithTransaction(data.OrderCode.ToString(), PaymentStatusEnum.Process);
+                        _logger.LogInformation("Payment processing for OrderCode: {OrderCode}", data.OrderCode);
                         break;
                     default:
                         _logger.LogError("Unknown payment status code: {Code} for OrderCode: {OrderCode}",
                             data.Code, data.OrderCode);
+                        await unitOfWork.RollBackAsync();
                         return false;
                 }
+
+                await unitOfWork.CommitTransactionAsync();
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "PayOS webhook verification failed for OrderCode: {OrderCode}. Possible fake webhook!",
-             webhookData?.Code);
-
+                await unitOfWork.RollBackAsync();
+                _logger.LogError(ex, "PayOS webhook verification failed for OrderCode: {OrderCode}",
+                    webhookData?.Code);
                 return false;
-
             }
         }
 
-        private async Task UpdatePayment(string OrderId, PaymentStatusEnum status)
+        private async Task UpdatePaymentWithTransaction(string orderId, PaymentStatusEnum status)
         {
-            var payment = await unitOfWork.GetRepository<Payment>().FindAsync(x => x.OrderCode == OrderId, include: x => x.Include(y => y.Membership));
+            var payment = await unitOfWork.GetRepository<Payment>()
+                .Entity
+                .Include(x => x.Membership)
+                .Where(x => x.OrderCode == orderId)
+                .FirstOrDefaultAsync();
+
             if (payment == null)
             {
-                throw new KeyNotFoundException("Payment not found");
+                throw new KeyNotFoundException($"Payment not found for OrderCode: {orderId}");
             }
-            if(status == PaymentStatusEnum.Completed && payment.Status != PaymentStatusEnum.Completed)
+            if (status == PaymentStatusEnum.Completed &&
+                payment.Status != PaymentStatusEnum.Completed)
             {
-                var userMembershipRes = new UserMembershipRequest
+                try
                 {
-                    UserId = payment.UserId,
-                    MembershipId = payment.MembershipId,
-                    StartDate = DateTime.UtcNow,
-                    EndDate = DateTime.UtcNow.AddMonths(payment.Membership.DurationInMonths)
+                    var userMembershipReq = new UserMembershipRequest
+                    {
+                        UserId = payment.UserId,
+                        MembershipId = payment.MembershipId,
+                        StartDate = DateTime.UtcNow,
+                        EndDate = DateTime.UtcNow.AddMonths(payment.Membership.DurationInMonths)
+                    };
+                    await _userMembershipService.AssignMembershipToUser(userMembershipReq);
 
-                };
-                await _userMembershipService.AssignMembershipToUser(userMembershipRes);
+                    _logger.LogInformation("Successfully assigned membership {MembershipId} to user {UserId} for payment {OrderCode}",
+                        payment.MembershipId, payment.UserId, orderId);
+                }
+                catch (InvalidOperationException ex) when (ex.Message.Contains("already has an active membership"))
+                {
+                    _logger.LogWarning("User {UserId} already has active membership {MembershipId}. Payment {OrderCode} will be marked as completed anyway.",
+                        payment.UserId, payment.MembershipId, orderId);
+                }
             }
+
             payment.Status = status;
             payment.UpdatedAt = DateTime.UtcNow;
+
             await unitOfWork.GetRepository<Payment>().UpdateAsync(payment);
             await unitOfWork.SaveChangesAsync();
         }
@@ -225,7 +261,7 @@ namespace LoopCut.Application.Services
             var payments = await unitOfWork.GetRepository<Payment>()
                 .GetPagging(query, pageIndex, pageSize);
             return mapper.Map<BasePaginatedList<PaymentDetailResponse>>(payments);
-        }
+        }     
     }
     
 }

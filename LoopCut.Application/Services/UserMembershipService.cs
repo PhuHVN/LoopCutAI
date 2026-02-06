@@ -25,46 +25,70 @@ namespace LoopCut.Application.Services
 
         public async Task<UserMembershipResponse> AssignMembershipToUser(UserMembershipRequest request)
         {
+            // Validation
             if (request.StartDate >= request.EndDate)
             {
                 throw new ArgumentException("StartDate must be earlier than EndDate.");
             }
-            if(request.EndDate <= DateTime.UtcNow)
+            if (request.EndDate <= DateTime.UtcNow)
             {
                 throw new ArgumentException("EndDate must be in the future.");
             }
-            var user = await _unitOfWork.GetRepository<Accounts>()
-                .FindAsync(x => x.Id == request.UserId && x.Status == StatusEnum.Active );
-            if (user == null)
+
+            // Bắt đầu transaction để tránh race condition
+             await _unitOfWork.BeginTransactionAsync();
+            try
             {
-                throw new KeyNotFoundException("User not found or inactive.");
+                var user = await _unitOfWork.GetRepository<Accounts>()
+                    .FindAsync(x => x.Id == request.UserId && x.Status == StatusEnum.Active);
+
+                if (user == null)
+                {
+                    throw new KeyNotFoundException("User not found or inactive.");
+                }
+
+                var membership = await _unitOfWork.GetRepository<Membership>()
+                    .FindAsync(x => x.Id == request.MembershipId && x.Status == StatusEnum.Active);
+
+                if (membership == null)
+                {
+                    throw new KeyNotFoundException("Membership not found or inactive.");
+                }
+
+                // Lock để tránh duplicate insert
+                var existingUserMembership = await _unitOfWork.GetRepository<UserMembership>()
+                    .Entity
+                    .Where(x => x.UserId == request.UserId
+                        && x.MembershipId == request.MembershipId
+                        && x.Status == MembershipStatusEnum.Active)
+                    .FirstOrDefaultAsync();
+
+                if (existingUserMembership != null)
+                {
+                    throw new InvalidOperationException("User already has an active membership of this type.");
+                }
+
+                var userMembership = new UserMembership
+                {
+                    UserId = request.UserId,
+                    MembershipId = request.MembershipId,
+                    StartDate = request.StartDate,
+                    EndDate = request.EndDate,
+                    CreatedAt = DateTime.UtcNow,
+                    Status = MembershipStatusEnum.Active
+                };
+
+                await _unitOfWork.GetRepository<UserMembership>().InsertAsync(userMembership);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransactionAsync();
+                return _mapper.Map<UserMembershipResponse>(userMembership);
             }
-            var membership = await _unitOfWork.GetRepository<Membership>()
-                .FindAsync(x => x.Id == request.MembershipId && x.Status == StatusEnum.Active);
-            if (membership == null)
+            catch
             {
-                throw new KeyNotFoundException("Membership not found or inactive.");
+                await _unitOfWork.RollBackAsync();
+                throw;
             }
-            var existingUserMembership = await _unitOfWork.GetRepository<UserMembership>()
-                .FindAsync(x => x.UserId == request.UserId 
-                && x.MembershipId == request.MembershipId 
-                && x.Status == MembershipStatusEnum.Active);
-            if(existingUserMembership != null)
-            {
-                throw new InvalidOperationException("User already has an active membership of this type.");
-            }
-            var userMembership = new UserMembership
-            {
-                UserId = request.UserId,
-                MembershipId = request.MembershipId,
-                StartDate = request.StartDate,
-                EndDate = request.EndDate,
-                CreatedAt = DateTime.UtcNow,
-                Status = MembershipStatusEnum.Active
-            };
-            await _unitOfWork.GetRepository<UserMembership>().InsertAsync(userMembership);
-            await _unitOfWork.SaveChangesAsync();
-            return _mapper.Map<UserMembershipResponse>(userMembership);
+        }
         }
 
         public async Task<BasePaginatedList<UserMembershipResponse>> GetUserMemberships(int pageIndex, int pageSize)
