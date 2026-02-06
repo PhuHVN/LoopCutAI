@@ -309,6 +309,7 @@ namespace LoopCut.Application.Services
             try
             {
                 await _unitOfWork.SubscriptionRepository.UpdateAsync(subscription);
+                await _unitOfWork.SaveChangesAsync();
                 return MapToSubV1(subscription);
             }
             catch (Exception ex)
