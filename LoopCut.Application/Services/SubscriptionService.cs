@@ -147,8 +147,9 @@ namespace LoopCut.Application.Services
 
         public async Task<BasePaginatedList<SubscriptionResponseV2>> GetAllSubscriptionsByUserLoginAsync(int pageIndex, int pageSize)
         {
+            var user = await _userService.GetCurrentUserLoginAsync();
             var query = _unitOfWork.SubscriptionRepository.Entity
-               .Where(s => s.Status != SubscriptionEnums.Inactive);
+               .Where(s => s.Status != SubscriptionEnums.Inactive && s.AccountId == user.Id);
 
             // Include ServicePlan and ServiceDefinition - we'll check null in mapping
             query = query.Include(s => s.ServicePlan)
