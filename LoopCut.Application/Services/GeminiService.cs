@@ -71,7 +71,7 @@ namespace LoopCut.Application.Services
         {
             return command.Action switch
             {
-                "GetSubscriptionInfo" => await _handleChatService.HandleSubscriptionAsync(command),
+                "GetSubscriptionHistory" => await _handleChatService.HandleSubscriptionHistoryAsync(command),
                 "GetMembershipCurrentUser" => await _handleChatService.HandleMembershipUserAsync(command),
                 "GetMembershipInfo" => await _handleChatService.HandleMembershipInfoAsync(command),
                 "GetMembershipList" => await _handleChatService.HandleMembershipListAsync(command),

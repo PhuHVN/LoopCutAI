@@ -145,6 +145,31 @@ namespace LoopCut.Application.Services
             };
         }
 
+        public async Task<BasePaginatedList<SubscriptionResponseV2>> GetAllSubscriptionsByUserLoginAsync(int pageIndex, int pageSize)
+        {
+            var query = _unitOfWork.SubscriptionRepository.Entity
+               .Where(s => s.Status != SubscriptionEnums.Inactive);
+
+            // Include ServicePlan and ServiceDefinition - we'll check null in mapping
+            query = query.Include(s => s.ServicePlan)
+                 .ThenInclude(sp => sp.ServiceDefinition);
+         
+            var paginatedSubscriptions = await _unitOfWork.SubscriptionRepository.GetPagging(query, pageIndex, pageSize);
+
+            var subscriptionResponses = paginatedSubscriptions.Items
+                .Select(s => MapToSubV2(s))
+                .ToList();
+
+            return new BasePaginatedList<SubscriptionResponseV2>
+            {
+                Items = subscriptionResponses,
+                TotalItems = paginatedSubscriptions.TotalItems,
+                PageIndex = paginatedSubscriptions.PageIndex,
+                TotalPages = paginatedSubscriptions.TotalPages,
+                PageSize = paginatedSubscriptions.PageSize
+            };
+        }
+
         public async Task<BasePaginatedList<SubscriptionResponseV2>> GetAllSubscriptionsWithPlanAndServiceByManagerAsync(
             int pageIndex,
             int pageSize,

@@ -12,7 +12,7 @@ namespace LoopCut.Application.Interfaces
     public interface IAccountService
     {
         Task<AccountResponse> CreateAccount(AccountRequest account);
-        Task<AccountResponse> UpdateAccount(string id , AccountRequest account);
+        Task<AccountResponse> UpdateAccount(string id , AccountUpRequest account);
         Task<AccountResponse> GetAccountById(string id);
         Task<BasePaginatedList<AccountResponse>> GetAllAccounts(int pageIndex, int pageSize);
         Task DeleteAccount(string id);
