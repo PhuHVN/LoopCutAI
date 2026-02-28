@@ -34,7 +34,7 @@ namespace LoopCut.Infrastructure.BackgroundTasks
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error in SubscriptionEmailChecker ExecuteAsync");
+                    _logger.LogError(ex.Message, "Error in SubscriptionEmailChecker ExecuteAsync");
                 }
                 await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
             }
@@ -55,7 +55,7 @@ namespace LoopCut.Infrastructure.BackgroundTasks
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"Error updating subscription {subscription.Id}");
+                    _logger.LogError(ex.Message, $"Error updating subscription {subscription.Id}");
                 }
                 _logger.LogInformation($"Subscription {subscription.Id} status updated to Expired");
             }

@@ -42,7 +42,7 @@ namespace LoopCut.Infrastructure.BackgroundTasks
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error in SubscriptionEmailWorker ExecuteAsync");
+                    _logger.LogError(ex.Message, "Error in SubscriptionEmailWorker ExecuteAsync");
                 }
 
                 // Wait for 30 minutes before next check
@@ -105,7 +105,7 @@ namespace LoopCut.Infrastructure.BackgroundTasks
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error processing subscription email for Subscription ID: {SubscriptionId}", sub.Id);
+                    _logger.LogError(ex.Message, "Error processing subscription email for Subscription ID: {SubscriptionId}", sub.Id);
                 }
             }
         }
