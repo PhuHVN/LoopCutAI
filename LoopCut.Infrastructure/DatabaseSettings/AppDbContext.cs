@@ -34,7 +34,7 @@ namespace LoopCut.Infrastructure.DatabaseSettings
             // Model configurations go here
 
             modelBuilder.Entity<Accounts>().ToTable("users");
-
+            modelBuilder.Entity<Membership>().Property(m => m.Price).HasPrecision(18, 2);
             modelBuilder.Entity<Membership>(e =>
             {
                 e.ToTable("memberships");

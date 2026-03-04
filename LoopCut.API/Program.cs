@@ -190,7 +190,7 @@ builder.Services.AddConfig(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 //Entity Framework + SQL Server
 builder.Services.AddDbContext<AppDbContext>(options
-    => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 //AddEnvironmentVariables
 builder.Configuration.AddEnvironmentVariables();
 //Cache
@@ -215,7 +215,6 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "Error Migrating Database");
     }
 }
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 {
