@@ -1,4 +1,5 @@
 ﻿using LoopCut.Domain.Enums;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace LoopCut.Domain.Entities
 {
@@ -6,7 +7,7 @@ namespace LoopCut.Domain.Entities
     {
         public string Id { get; set; } = Guid.NewGuid().ToString();
         public required string ServiceDefinitionId { get; set; }
-        public string? ModifiedByID { get; set; }
+        public string? ModifiedById { get; set; }
 
         public string PlanName { get; set; } = string.Empty;
 

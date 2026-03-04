@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LoopCut.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260304085923_InitTable")]
-    partial class InitTable
+    [Migration("20260304112103_FixMigration")]
+    partial class FixMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -32,6 +32,9 @@ namespace LoopCut.Infrastructure.Migrations
 
                     b.Property<string>("Address")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("AvatarUrl")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
@@ -61,9 +64,6 @@ namespace LoopCut.Infrastructure.Migrations
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
-
-                    b.Property<string>("avatarUrl")
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -166,9 +166,6 @@ namespace LoopCut.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ModifiedByID")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("ModifiedById")
                         .HasColumnType("nvarchar(450)");
 
@@ -180,8 +177,6 @@ namespace LoopCut.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ModifiedByID");
 
                     b.HasIndex("ModifiedById");
 
@@ -202,9 +197,6 @@ namespace LoopCut.Infrastructure.Migrations
                     b.Property<DateTime?>("LastUpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("ModifiedByID")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("ModifiedById")
                         .HasColumnType("nvarchar(450)");
 
@@ -223,8 +215,6 @@ namespace LoopCut.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ModifiedByID");
 
                     b.HasIndex("ModifiedById");
 
@@ -372,12 +362,8 @@ namespace LoopCut.Infrastructure.Migrations
 
             modelBuilder.Entity("LoopCut.Domain.Entities.ServiceDefinitions", b =>
                 {
-                    b.HasOne("LoopCut.Domain.Entities.Accounts", null)
-                        .WithMany("ModifiedServices")
-                        .HasForeignKey("ModifiedByID");
-
                     b.HasOne("LoopCut.Domain.Entities.Accounts", "ModifiedBy")
-                        .WithMany()
+                        .WithMany("ModifiedServices")
                         .HasForeignKey("ModifiedById");
 
                     b.Navigation("ModifiedBy");
@@ -385,12 +371,8 @@ namespace LoopCut.Infrastructure.Migrations
 
             modelBuilder.Entity("LoopCut.Domain.Entities.ServicePlans", b =>
                 {
-                    b.HasOne("LoopCut.Domain.Entities.Accounts", null)
-                        .WithMany("ModifiedServicePlans")
-                        .HasForeignKey("ModifiedByID");
-
                     b.HasOne("LoopCut.Domain.Entities.Accounts", "ModifiedBy")
-                        .WithMany()
+                        .WithMany("ModifiedServicePlans")
                         .HasForeignKey("ModifiedById");
 
                     b.HasOne("LoopCut.Domain.Entities.ServiceDefinitions", "ServiceDefinition")

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace LoopCut.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitTable : Migration
+    public partial class FixMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -38,7 +38,7 @@ namespace LoopCut.Infrastructure.Migrations
                     FullName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Address = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    avatarUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    AvatarUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     LastUpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Role = table.Column<int>(type: "int", nullable: false),
@@ -91,17 +91,11 @@ namespace LoopCut.Infrastructure.Migrations
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     LastUpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Status = table.Column<int>(type: "int", nullable: false),
-                    ModifiedByID = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     ModifiedById = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Services", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Services_users_ModifiedByID",
-                        column: x => x.ModifiedByID,
-                        principalTable: "users",
-                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Services_users_ModifiedById",
                         column: x => x.ModifiedById,
@@ -145,14 +139,13 @@ namespace LoopCut.Infrastructure.Migrations
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ServiceDefinitionId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ModifiedByID = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    ModifiedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     PlanName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Price = table.Column<double>(type: "float", nullable: false),
                     BillingCycleEnums = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     LastUpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    status = table.Column<int>(type: "int", nullable: false),
-                    ModifiedById = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    status = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -163,11 +156,6 @@ namespace LoopCut.Infrastructure.Migrations
                         principalTable: "Services",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ServicePlans_users_ModifiedByID",
-                        column: x => x.ModifiedByID,
-                        principalTable: "users",
-                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_ServicePlans_users_ModifiedById",
                         column: x => x.ModifiedById,
@@ -253,11 +241,6 @@ namespace LoopCut.Infrastructure.Migrations
                 column: "ModifiedById");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ServicePlans_ModifiedByID",
-                table: "ServicePlans",
-                column: "ModifiedByID");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_ServicePlans_ServiceDefinitionId",
                 table: "ServicePlans",
                 column: "ServiceDefinitionId");
@@ -266,11 +249,6 @@ namespace LoopCut.Infrastructure.Migrations
                 name: "IX_Services_ModifiedById",
                 table: "Services",
                 column: "ModifiedById");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Services_ModifiedByID",
-                table: "Services",
-                column: "ModifiedByID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Subcriptions_AccountId",

@@ -75,7 +75,7 @@ namespace LoopCut.Application.Services
                 };
             }
 
-            var servicePlan = await _unitOfWork.ServicePlanRepository.FindAsync(sp => sp.Id == id && sp.status == ServicePlanEnums.Active && sp.ModifiedByID == user.Id);
+            var servicePlan = await _unitOfWork.ServicePlanRepository.FindAsync(sp => sp.Id == id && sp.status == ServicePlanEnums.Active && sp.ModifiedById == user.Id);
 
             if (servicePlan == null)
             {
@@ -102,7 +102,7 @@ namespace LoopCut.Application.Services
             var servicePlan = await _unitOfWork.ServicePlanRepository.GetByIdAsync(id);
 
             // Check permissions
-            if (servicePlan?.ModifiedByID != user.Id)
+            if (servicePlan?.ModifiedById != user.Id)
             {
                 throw new UnauthorizedAccessException("You do not have permission to update this service plan.");
             }
@@ -117,7 +117,7 @@ namespace LoopCut.Application.Services
             servicePlan.BillingCycleEnums = servicePlanRequestV1.BillingCycleEnums ?? BillingCycleEnums.None;
             servicePlan.LastUpdatedAt = DateTime.UtcNow;
             servicePlan.ModifiedBy = user;
-            servicePlan.ModifiedByID = user.Id;
+            servicePlan.ModifiedById = user.Id;
 
             try
             {
