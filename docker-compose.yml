@@ -6,7 +6,7 @@ services:
       - "1433:1433"
     environment:
       - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD={SQL__PASSWORD}
+      - MSSQL_SA_PASSWORD=${SQL__PASSWORD}
     volumes:
       - mssql_data:/var/opt/mssql
 
@@ -20,5 +20,6 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=${CONNECTIONSTRINGS__DEFAULTCONNECTION}
+
 volumes:
   mssql_data:
