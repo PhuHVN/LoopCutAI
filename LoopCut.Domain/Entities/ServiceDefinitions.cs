@@ -1,5 +1,5 @@
 using LoopCut.Domain.Enums;
-
+using System.ComponentModel.DataAnnotations.Schema;
 namespace LoopCut.Domain.Entities;
 
 public class ServiceDefinitions
