@@ -44,7 +44,7 @@ namespace LoopCut.Application.Services
                     LogoUrl = serviceRequest.LogoUrl,
                     CreatedAt = DateTime.UtcNow,
                     Status = ServiceEnums.Active,
-                    ModifiedByID = user.Id,
+                    ModifiedById = user.Id,
                     ModifiedBy = user
 
                 };
@@ -64,7 +64,7 @@ namespace LoopCut.Application.Services
                             CreatedAt = DateTime.UtcNow,
                             status = ServicePlanEnums.Active,
                             ServiceDefinitionId = service.Id,
-                            ModifiedByID = user.Id,
+                            ModifiedById = user.Id,
                             ModifiedBy = user,
                             ServiceDefinition = service
                         };
@@ -101,7 +101,7 @@ namespace LoopCut.Application.Services
             var existingService = await _unitOfWork.ServiceRepository.GetByIdAsync(id);
 
             // Check permission
-            if (user.Id != existingService.ModifiedByID)
+            if (user.Id != existingService.ModifiedById)
             {
                 throw new UnauthorizedAccessException("You do not have permission to delete this service.");
             }
@@ -113,7 +113,7 @@ namespace LoopCut.Application.Services
 
 
             existingService.Status = ServiceEnums.Inactive;
-            existingService.ModifiedByID = user.Id;
+            existingService.ModifiedById = user.Id;
             existingService.ModifiedBy = user;
             existingService.LastUpdatedAt = DateTime.UtcNow;
             await _unitOfWork.ServiceRepository.UpdateAsync(existingService);
@@ -127,7 +127,7 @@ namespace LoopCut.Application.Services
 
             if (user.Role != RoleEnum.Admin)
             {
-                query = query.Where(s => s.ModifiedByID == user.Id);
+                query = query.Where(s => s.ModifiedById == user.Id);
             }
 
             query = query.Include(s => s.ServicePlans).ThenInclude(sp => sp.ModifiedBy);
@@ -164,7 +164,7 @@ namespace LoopCut.Application.Services
                 return MapToServiceResponse(adminService);
             }
 
-            var existingService = await _unitOfWork.ServiceRepository.FindAsync(s => s.Id == id && s.Status == ServiceEnums.Active && s.ModifiedByID == user.Id,
+            var existingService = await _unitOfWork.ServiceRepository.FindAsync(s => s.Id == id && s.Status == ServiceEnums.Active && s.ModifiedById == user.Id,
                 include: s => s.Include(x => x.ServicePlans).ThenInclude(sp => sp.ModifiedBy));
 
             if (existingService == null)
@@ -182,7 +182,7 @@ namespace LoopCut.Application.Services
             var existingService = await _unitOfWork.ServiceRepository.GetByIdAsync(id);
 
             // Check permission
-            if (user.Id != existingService.ModifiedByID)
+            if (user.Id != existingService.ModifiedById)
             {
                 throw new UnauthorizedAccessException("You do not have permission to update this service.");
             }
@@ -196,7 +196,7 @@ namespace LoopCut.Application.Services
             existingService.Description = serviceRequest.Description;
             existingService.LogoUrl = serviceRequest.LogoUrl;
             existingService.LastUpdatedAt = DateTime.UtcNow;
-            existingService.ModifiedByID = user.Id;
+            existingService.ModifiedById = user.Id;
             existingService.ModifiedBy = user;
             try
             {
@@ -220,7 +220,7 @@ namespace LoopCut.Application.Services
             var user = await _userService.GetCurrentUserLoginAsync();
 
             // Check permission
-            if (user.Id != existingService.ModifiedByID)
+            if (user.Id != existingService.ModifiedById)
             {
                 throw new UnauthorizedAccessException("You do not have permission to add service plan to this service.");
             }
@@ -234,7 +234,7 @@ namespace LoopCut.Application.Services
                 CreatedAt = DateTime.UtcNow,
                 status = ServicePlanEnums.Active,
                 ServiceDefinitionId = existingService.Id,
-                ModifiedByID = user.Id,
+                ModifiedById = user.Id,
                 ModifiedBy = user,
                 ServiceDefinition = existingService
             };

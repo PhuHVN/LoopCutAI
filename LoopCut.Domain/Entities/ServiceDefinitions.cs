@@ -11,7 +11,7 @@ public class ServiceDefinitions
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? LastUpdatedAt { get; set; }
     public ServiceEnums Status { get; set; } = ServiceEnums.Active;
-    public string? ModifiedByID { get; set; }
+    public string? ModifiedById { get; set; }
 
     // Navigation Properties
     public  Accounts? ModifiedBy { get; set; }
