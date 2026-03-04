@@ -215,7 +215,6 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "Error Migrating Database");
     }
 }
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 {
