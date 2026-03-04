@@ -1,10 +1,25 @@
+version: '3.8'   
 services:
-  loopcut-api:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD={SQL__PASSWORD}
+    volumes:
+      - mssql_data:/var/opt/mssql
+
+  api:
+    build: .
+    container_name: aspnet_api
     ports:
       - "8080:8080"
+    depends_on:
+      - db
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=${CONNECTIONSTRINGS__DEFAULTCONNECTION}
+volumes:
+  mssql_data:
