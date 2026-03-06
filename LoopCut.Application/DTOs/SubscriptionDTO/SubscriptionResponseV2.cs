@@ -13,6 +13,7 @@ namespace LoopCut.Application.DTOs.SubscriptionDTO
         public DateTime? EndDate { get; set; }
         public double Price { get; set; } = 0.0;
         public int RemiderDays { get; set; } = 0;
+        public string? IconUrl { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? LastUpdatedAt { get; set; }
         public SubscriptionEnums Status { get; set; } = SubscriptionEnums.Active;

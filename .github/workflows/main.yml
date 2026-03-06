@@ -1,8 +1,8 @@
-name: CI/CD Pipeline
+name: CI/CD Pipeline to GCP
 
 on:
   push:
-    branches: ["main"] # Chạy khi push vào nhánh main
+    branches: ["main"]
 
 jobs:
   build-and-deploy:
@@ -11,27 +11,48 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Bước 1: Build và kiểm tra lỗi .NET
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "8.0"
-      - name: Restore dependencies
-        run: dotnet restore
-      - name: Build
-        run: dotnet build --no-restore
 
-      # Bước 2: Login vào Docker Hub (Cần Secret)
+      - name: Restore and Build
+        run: |
+          dotnet restore
+          dotnet build --no-restore
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Bước 3: Build và Push Docker Image
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/loopcut-api:latest
+
+      #--- Deploy to VM on GCP---
+
+      - name: Auth to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy to VM via SSH
+        run: |
+          gcloud compute ssh ${{ secrets.GCP_VM_NAME }} --zone=${{ secrets.GCP_ZONE }} --project=${{ secrets.GCP_PROJECT_ID }} --command="
+            echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+            
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/loopcut-api:latest
+            
+            docker stop loopcut-api-container || true
+            docker rm loopcut-api-container || true
+            
+            docker run -d --name loopcut-api-container -p 80:8080 ${{ secrets.DOCKERHUB_USERNAME }}/loopcut-api:latest
+          "

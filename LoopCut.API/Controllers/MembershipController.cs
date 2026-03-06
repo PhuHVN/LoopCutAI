@@ -2,6 +2,7 @@
 using LoopCut.Application.DTOs.MembershipDtos;
 using LoopCut.Application.Interfaces;
 using LoopCut.Domain.Abstractions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -19,14 +20,16 @@ namespace LoopCut.API.Controllers
         }
 
         [HttpPost]
-        [SwaggerOperation(Summary = "Create a new membership")]
+        [Authorize(Roles = "Admin")]
+        [SwaggerOperation(Summary = "Create a new membership by admin")]
         public async Task<IActionResult> CreateMembership([FromBody] MembershipRequest membershipRequest)
         {
             var result = await _membershipService.CreateMembership(membershipRequest);
             return Ok(ApiResponse<MembershipResponse>.OkResponse(result, "Create successful!", "200"));
         }
         [HttpDelete("{id}")]
-        [SwaggerOperation(Summary = "Delete a membership by ID")]
+        [Authorize(Roles = "Admin")]
+        [SwaggerOperation(Summary = "Delete a membership by ID(Admin)")]
         public async Task<IActionResult> DeleteMembership([FromRoute] string id)
         {
             await _membershipService.DeleteMembership(id);
@@ -48,7 +51,8 @@ namespace LoopCut.API.Controllers
 
         }
         [HttpPut("{id}")]
-        [SwaggerOperation(Summary = "Update a membership by ID")]
+        [Authorize(Roles = "Admin")]
+        [SwaggerOperation(Summary = "Update a membership by ID (Admin)")]
         public async Task<IActionResult> UpdateMembership([FromRoute] string id, [FromBody] MembershipUpRes membershipRequest)
         {
             var result = await _membershipService.UpdateMembership(id, membershipRequest);

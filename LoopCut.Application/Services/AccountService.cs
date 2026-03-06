@@ -19,10 +19,12 @@ namespace LoopCut.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper mapper;
-        public AccountService(IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly IStorageService _storageService;
+        public AccountService(IUnitOfWork unitOfWork, IMapper mapper, IStorageService storageService)
         {
             _unitOfWork = unitOfWork;
             this.mapper = mapper;
+            _storageService = storageService;
 
         }
         public async Task<AccountResponse> CreateAccount(AccountRequest account)
@@ -30,7 +32,7 @@ namespace LoopCut.Application.Services
 
             //validate email
             var emailValid = new System.Net.Mail.MailAddress(account.Email);
-            if(emailValid.Address !=  account.Email)
+            if (emailValid.Address != account.Email)
             {
                 throw new ArgumentException("Invalid email format.");
             }
@@ -95,6 +97,18 @@ namespace LoopCut.Application.Services
                 throw new KeyNotFoundException("Account not found.");
             }
             var isUpdate = false;
+            if (account.AvatarUrl != null && account.AvatarUrl.Length > 0)
+            {
+                //add new avt
+                var avatarUrl = await _storageService.UploadFileAsync(account.AvatarUrl);
+                if(!string.IsNullOrEmpty(existingAccount.AvatarUrl))
+                {
+                    //delete old avt
+                    await _storageService.DeleteFileAsync(existingAccount.AvatarUrl);
+                }
+                existingAccount.AvatarUrl = avatarUrl;
+                isUpdate = true;
+            }
             if (!string.IsNullOrEmpty(account.FullName) && existingAccount.FullName != account.FullName)
             {
                 existingAccount.FullName = account.FullName;

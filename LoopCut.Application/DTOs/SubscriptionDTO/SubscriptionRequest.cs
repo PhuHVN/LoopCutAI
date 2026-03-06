@@ -1,4 +1,6 @@
-﻿namespace LoopCut.Application.DTOs.SubscriptionDTO
+﻿using Microsoft.AspNetCore.Http;
+
+namespace LoopCut.Application.DTOs.SubscriptionDTO
 {
     public class SubscriptionRequest
     {
@@ -8,5 +10,6 @@
         public DateTime EndDate { get; set; } = DateTime.UtcNow.AddMonths(1);
         public double Price { get; set; } = 0.0;
         public int RemiderDays { get; set; } = 0;
+        public IFormFile? IconUrl { get; set; }
     }
 }

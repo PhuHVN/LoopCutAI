@@ -2,6 +2,7 @@
 using LoopCut.Application.DTOs.AccountDtos;
 using LoopCut.Application.Interfaces;
 using LoopCut.Domain.Abstractions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -19,7 +20,8 @@ namespace LoopCut.API.Controllers
         }
 
         [HttpPost]
-        [SwaggerOperation(Summary = "Create a new account", Description = "Creates a new user account with the provided details.")]
+        [Authorize(Roles = "Admin")]
+        [SwaggerOperation(Summary = "Create a new account by admin", Description = "Creates a new user account with the provided details.")]
         public async Task<IActionResult> CreateAccount(AccountRequest account)
         {
             var result = await _accountService.CreateAccount(account);
