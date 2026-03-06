@@ -7,6 +7,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -34,7 +35,7 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/loopcut-api:latest
 
-      #--- Deploy to VM on GCP---
+      # --- Deploy to VM on GCP ---
 
       - name: Auth to Google Cloud
         uses: google-github-actions/auth@v2
@@ -46,13 +47,19 @@ jobs:
 
       - name: Deploy to VM via SSH
         run: |
-          gcloud compute ssh ${{ secrets.GCP_VM_NAME }} --zone=${{ secrets.GCP_ZONE }} --project=${{ secrets.GCP_PROJECT_ID }} --command="
-            echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
-            
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/loopcut-api:latest
-            
-            docker stop loopcut-api-container || true
-            docker rm loopcut-api-container || true
-            
-            docker run -d --name loopcut-api-container -p 80:8080 ${{ secrets.DOCKERHUB_USERNAME }}/loopcut-api:latest
+          gcloud compute ssh ${{ secrets.GCP_VM_NAME }} \
+          --zone=${{ secrets.GCP_ZONE }} \
+          --project=${{ secrets.GCP_PROJECT_ID }} \
+          --command="
+            echo '${{ secrets.DOCKERHUB_TOKEN }}' | sudo docker login -u '${{ secrets.DOCKERHUB_USERNAME }}' --password-stdin
+
+            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/loopcut-api:latest
+
+            sudo docker stop loopcut-api-container || true
+            sudo docker rm loopcut-api-container || true
+
+            sudo docker run -d \
+              --name loopcut-api-container \
+              -p 80:8080 \
+              ${{ secrets.DOCKERHUB_USERNAME }}/loopcut-api:latest
           "

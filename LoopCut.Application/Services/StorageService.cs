@@ -20,19 +20,14 @@ namespace LoopCut.Application.Services
 
         public StorageService(IConfiguration configuration, ILogger<StorageService> logger)
         {
-            try
-            {
-                var jsonKey = configuration["GoogleStorage:CredentialsJson"];
-                _bucketName = configuration["GoogleStorage:BucketName"]?.Trim();
 
-                var credential = GoogleCredential.FromJson(jsonKey);
-                _storageClient = StorageClient.Create(credential);
-                _logger = logger;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error: {ex.Message}");
-            }
+            var jsonKey = configuration["GoogleStorage:CredentialsJson"];
+            _bucketName = configuration["GoogleStorage:BucketName"]?.Trim();
+
+            var credential = GoogleCredential.FromJson(jsonKey);
+            _storageClient = StorageClient.Create(credential);
+            _logger = logger;
+
         }
 
         public async Task DeleteFileAsync(string fileUrl)
@@ -55,7 +50,7 @@ namespace LoopCut.Application.Services
 
         public async Task<string> UploadFileAsync(IFormFile file)
         {
-            if(file == null || file.Length == 0)
+            if (file == null || file.Length == 0)
             {
                 throw new ArgumentException("File is empty.");
             }
