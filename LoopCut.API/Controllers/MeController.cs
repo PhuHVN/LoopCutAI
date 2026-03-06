@@ -43,7 +43,7 @@ namespace LoopCut.API.Controllers
 
         [HttpPost("subscriptions")]
         [SwaggerOperation(Summary = "Create a new subscription for user")]
-        public async Task<IActionResult> CreateSubscriptionForUser([FromBody] SubscriptionRequest request)
+        public async Task<IActionResult> CreateSubscriptionForUser([FromForm] SubscriptionRequest request)
         {
             var result = await _subscriptionService.CreateSubscriptionByUserAsync(request);
             return Ok(ApiResponse<SubscriptionResponseV1>.OkResponse(result, "Subscription created successfully!", "201"));
@@ -51,7 +51,7 @@ namespace LoopCut.API.Controllers
 
         [HttpPut("subscriptions/{id}")]
         [SwaggerOperation(Summary = "Update a subscription by ID for user")]
-        public async Task<IActionResult> UpdateSubscriptionForUser([FromRoute] string id, [FromBody] SubscriptionRequest request)
+        public async Task<IActionResult> UpdateSubscriptionForUser([FromRoute] string id, [FromForm] SubscriptionRequest request)
         {
             var result = await _subscriptionService.UpdateSubscriptionByUserLoginAsync(id, request);
             return Ok(ApiResponse<SubscriptionResponseV1>.OkResponse(result, "Subscription updated successfully!", "200"));
