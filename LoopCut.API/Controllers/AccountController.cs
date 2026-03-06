@@ -2,6 +2,7 @@
 using LoopCut.Application.DTOs.AccountDtos;
 using LoopCut.Application.Interfaces;
 using LoopCut.Domain.Abstractions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -19,7 +20,8 @@ namespace LoopCut.API.Controllers
         }
 
         [HttpPost]
-        [SwaggerOperation(Summary = "Create a new account", Description = "Creates a new user account with the provided details.")]
+        [Authorize(Roles = "Admin")]
+        [SwaggerOperation(Summary = "Create a new account by admin", Description = "Creates a new user account with the provided details.")]
         public async Task<IActionResult> CreateAccount(AccountRequest account)
         {
             var result = await _accountService.CreateAccount(account);
@@ -41,7 +43,7 @@ namespace LoopCut.API.Controllers
         }
         [HttpPut("{id}")]
         [SwaggerOperation(Summary = "Update account", Description = "Updates the details of an existing user account.")]
-        public async Task<IActionResult> UpdateAccount(string id, AccountUpRequest account)
+        public async Task<IActionResult> UpdateAccount(string id,[FromForm] AccountUpRequest account)
         {
             var result = await _accountService.UpdateAccount(id, account);
             return Ok(ApiResponse<AccountResponse>.OkResponse(result,"Update account successful!","200"));

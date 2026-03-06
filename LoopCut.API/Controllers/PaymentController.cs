@@ -3,6 +3,7 @@ using LoopCut.Application.DTOs.PaymentDTO;
 using LoopCut.Application.DTOs.PayOsDto;
 using LoopCut.Application.Interfaces;
 using LoopCut.Domain.Abstractions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PayOS.Models.Webhooks;
@@ -66,6 +67,7 @@ namespace LoopCut.API.Controllers
             });
         }
         [HttpGet("{orderCode}")]
+        [Authorize]
         [SwaggerOperation(Summary = "Get payment information by order code.")]
         public async Task<IActionResult> GetByOrderCode([FromRoute] string orderCode)
         {
@@ -74,6 +76,7 @@ namespace LoopCut.API.Controllers
         }
 
         [HttpGet("history")]
+        [Authorize]
         [SwaggerOperation(Summary = "Get paginated list of payments with optional filters.")]
         public async Task<IActionResult> GetAllPayments([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10, [FromQuery] PaymentFilterRequest? filter = null)
         {

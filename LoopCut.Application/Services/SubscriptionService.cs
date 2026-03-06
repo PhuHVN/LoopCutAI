@@ -15,12 +15,14 @@ namespace LoopCut.Application.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserService _userService;
         private readonly ILogger<SubscriptionService> _logger;
+        private readonly IStorageService _storageService;
 
-        public SubscriptionService(IUnitOfWork unitOfWork, IUserService userService, ILogger<SubscriptionService> logger)
+        public SubscriptionService(IUnitOfWork unitOfWork, IUserService userService, ILogger<SubscriptionService> logger, IStorageService storageService)
         {
             _unitOfWork = unitOfWork;
             _userService = userService;
             _logger = logger;
+            _storageService = storageService;
         }
 
         public async Task<SubscriptionResponseV1> CreateSubscriptionByUserAsync(SubscriptionRequest subscriptionRequest)
@@ -36,7 +38,6 @@ namespace LoopCut.Application.Services
                     throw new KeyNotFoundException("Service plan not found.");
                 }
             }
-
             var subscription = new Subscriptions
             {
                 AccountId = user.Id,
@@ -47,6 +48,7 @@ namespace LoopCut.Application.Services
                 EndDate = subscriptionRequest.EndDate,
                 Price = subscriptionRequest.Price,
                 RemiderDays = subscriptionRequest.RemiderDays,
+                IconUrl = subscriptionRequest.IconUrl != null ? await _storageService.UploadFileAsync(subscriptionRequest.IconUrl) : null,
                 CreatedAt = DateTime.UtcNow,
                 Status = SubscriptionEnums.Active
             };
@@ -154,7 +156,7 @@ namespace LoopCut.Application.Services
             // Include ServicePlan and ServiceDefinition - we'll check null in mapping
             query = query.Include(s => s.ServicePlan)
                  .ThenInclude(sp => sp.ServiceDefinition);
-         
+
             var paginatedSubscriptions = await _unitOfWork.SubscriptionRepository.GetPagging(query, pageIndex, pageSize);
 
             var subscriptionResponses = paginatedSubscriptions.Items
@@ -299,6 +301,15 @@ namespace LoopCut.Application.Services
                 // allow setting ServicePlanId to null (unlink plan)
                 subscription.ServicePlanId = null;
             }
+            if (subscriptionRequest.IconUrl != null)
+            {
+                var newUrl = await _storageService.UploadFileAsync(subscriptionRequest.IconUrl);
+                if (!string.IsNullOrEmpty(subscription.IconUrl))
+                {
+                    await _storageService.DeleteFileAsync(subscription.IconUrl);
+                }
+                subscription.IconUrl = newUrl;
+            }
 
             subscription.SubscriptionsName = subscriptionRequest.SubscriptionsName;
             subscription.StartDate = subscriptionRequest.StartDate;
@@ -330,7 +341,8 @@ namespace LoopCut.Application.Services
                 StartDate = subscription.StartDate,
                 EndDate = subscription.EndDate,
                 Price = subscription.Price,
-                RemiderDays = subscription.RemiderDays,
+                RemiderDays = subscription.RemiderDays, 
+                IconUrl = subscription.IconUrl,
                 Status = subscription.Status,
                 PlanId = subscription.ServicePlan?.Id ?? string.Empty,
                 PlanName = subscription.ServicePlan?.PlanName ?? string.Empty,
@@ -354,6 +366,7 @@ namespace LoopCut.Application.Services
                 RemiderDays = subscription.RemiderDays,
                 CreatedAt = subscription.CreatedAt,
                 LastUpdatedAt = subscription.LastUpdatedAt,
+                IconUrl = subscription.IconUrl,
                 Status = subscription.Status,
                 PlanId = subscription.ServicePlan?.Id,
                 PlanName = subscription.ServicePlan?.PlanName ?? string.Empty,
