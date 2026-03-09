@@ -21,6 +21,7 @@ namespace LoopCut.Infrastructure.DatabaseSettings
         public DbSet<Subscriptions> Subcriptions { get; set; }
 
         public DbSet<ServicePlans> ServicePlans { get; set; }
+        public DbSet<AuditLogging> AuditLoggings { get; set; }
 
         public DbSet<ServiceDefinitions> Services { get; set; }
         public DbSet<Payment> Payments { get; set; }

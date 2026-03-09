@@ -35,8 +35,6 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/loopcut-api:latest
 
-      # --- Deploy to VM on GCP ---
-
       - name: Auth to Google Cloud
         uses: google-github-actions/auth@v2
         with:
@@ -51,15 +49,21 @@ jobs:
           --zone=${{ secrets.GCP_ZONE }} \
           --project=${{ secrets.GCP_PROJECT_ID }} \
           --command="
+            cd ~/loopcut-deploy
+
+            # Login Docker Hub
             echo '${{ secrets.DOCKERHUB_TOKEN }}' | sudo docker login -u '${{ secrets.DOCKERHUB_USERNAME }}' --password-stdin
 
-            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/loopcut-api:latest
+            # Pull image mới nhất
+            sudo docker-compose pull
 
-            sudo docker stop loopcut-api-container || true
-            sudo docker rm loopcut-api-container || true
+            # Restart với image mới
+            sudo docker-compose down
+            sudo docker-compose up -d
 
-            sudo docker run -d \
-              --name loopcut-api-container \
-              -p 80:8080 \
-              ${{ secrets.DOCKERHUB_USERNAME }}/loopcut-api:latest
+            # Cleanup old images
+            sudo docker image prune -af
+
+            # Show status
+            sudo docker-compose ps
           "
