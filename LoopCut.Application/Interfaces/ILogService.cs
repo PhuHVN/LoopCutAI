@@ -13,8 +13,8 @@ namespace LoopCut.Application.Interfaces
     public interface ILogService
     {
         Task LogAsync<T>(AuditActionEnum action,string entityName, string entityId,T? oldValues = default,T? newValues = default);
-        Task<BasePaginatedList<AuditLog>> GetAllLogsAsync(int pageIndex, int pageSize);
-        Task<BasePaginatedList<AuditLog>> GetLogsByFilterAsync(int pageIndex, int pageSize, FilterLogDto dto);
+        Task<BasePaginatedList<AuditLogging>> GetAllLogsAsync(int pageIndex, int pageSize);
+        Task<BasePaginatedList<AuditLogging>> GetLogsByFilterAsync(int pageIndex, int pageSize, FilterLogDto dto);
         
     }
 }

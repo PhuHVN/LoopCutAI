@@ -89,14 +89,7 @@ namespace LoopCut.Application.Services
             {
                 throw new UnauthorizedAccessException("Account is not active.");
             }
-            await _logService.LogAsync(
-                action: AuditActionEnum.Login,
-                entityId: existingAccount.Id,
-                entityName: nameof(Accounts),
-                newValues: (object?)null,
-                oldValues: (object?)null
-
-            );
+            
             return new AuthResponse
             {
                 Token = await GenerateJwtToken(existingAccount)
@@ -125,13 +118,7 @@ namespace LoopCut.Application.Services
                     throw new UnauthorizedAccessException("Account not found.");
                     //logic add new account 
                 }
-                await _logService.LogAsync(
-                    action: AuditActionEnum.Login,
-                    entityId: existingAccount.Id,
-                    entityName: nameof(Accounts),
-                    newValues: (object?)null,
-                    oldValues: (object?)null
-                );
+                
                 return new AuthResponse
                 {
                     Token = await GenerateJwtToken(existingAccount),
@@ -188,22 +175,7 @@ namespace LoopCut.Application.Services
                 };
 
                 await _unitOfWork.GetRepository<Accounts>().InsertAsync(newAccount);
-                await _unitOfWork.SaveChangesAsync();
-                await _logService.LogAsync(
-                    action: AuditActionEnum.Create,
-                    entityId: newAccount.Id,
-                    entityName: nameof(Accounts),
-                    newValues: new
-                    {
-                        newAccount.Email,
-                        newAccount.FullName,
-                        newAccount.Address,
-                        newAccount.PhoneNumber,
-                        newAccount.Role,
-                        newAccount.Status
-                    }
-
-                );
+                await _unitOfWork.SaveChangesAsync();             
                 await _unitOfWork.CommitTransactionAsync();
                 return _mapper.Map<AccountResponse>(newAccount);
             }

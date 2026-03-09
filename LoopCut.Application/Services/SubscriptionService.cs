@@ -49,6 +49,7 @@ namespace LoopCut.Application.Services
                 StartDate = subscriptionRequest.StartDate,
                 EndDate = subscriptionRequest.EndDate,
                 Price = subscriptionRequest.Price,
+                HomepageUrl = subscriptionRequest.HomepageUrl,
                 RemiderDays = subscriptionRequest.RemiderDays,
                 IconUrl = subscriptionRequest.IconUrl != null ? await _storageService.UploadFileAsync(subscriptionRequest.IconUrl) : null,
                 CreatedAt = DateTime.UtcNow,
@@ -64,7 +65,13 @@ namespace LoopCut.Application.Services
                     action: AuditActionEnum.Create,
                     entityName: nameof(Subscriptions),
                     entityId: subscription.Id,
-                    newValues: $"Created subscription with name {subscription.SubscriptionsName} for user {user.Id}"
+                    newValues: new
+                    {
+                        subscription.SubscriptionsName,
+                        subscription.StartDate,
+                        subscription.EndDate,                    
+                        subscription.Status
+                    }
 
                 );
                 await _unitOfWork.CommitTransactionAsync();
@@ -117,6 +124,7 @@ namespace LoopCut.Application.Services
                         subscription.SubscriptionsName,
                         subscription.StartDate,
                         subscription.EndDate,
+                        subscription.HomepageUrl,
                         subscription.Price,
                         subscription.RemiderDays,
                         subscription.IconUrl,
@@ -342,6 +350,7 @@ namespace LoopCut.Application.Services
 
             subscription.SubscriptionsName = subscriptionRequest.SubscriptionsName;
             subscription.StartDate = subscriptionRequest.StartDate;
+            subscription.HomepageUrl = subscriptionRequest.HomepageUrl;
             subscription.EndDate = subscriptionRequest.EndDate;
             subscription.Price = subscriptionRequest.Price;
             subscription.RemiderDays = subscriptionRequest.RemiderDays;
@@ -370,6 +379,7 @@ namespace LoopCut.Application.Services
                 StartDate = subscription.StartDate,
                 EndDate = subscription.EndDate,
                 Price = subscription.Price,
+                HomepageUrl = subscription.HomepageUrl,
                 RemiderDays = subscription.RemiderDays,
                 IconUrl = subscription.IconUrl,
                 Status = subscription.Status,
@@ -392,6 +402,7 @@ namespace LoopCut.Application.Services
                 StartDate = subscription.StartDate,
                 EndDate = subscription.EndDate,
                 Price = subscription.Price,
+                HomepageUrl = subscription.HomepageUrl,
                 RemiderDays = subscription.RemiderDays,
                 CreatedAt = subscription.CreatedAt,
                 LastUpdatedAt = subscription.LastUpdatedAt,

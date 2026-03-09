@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LoopCut.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260307013611_addAuditLogTable")]
+    [Migration("20260309095820_addAuditLogTable")]
     partial class addAuditLogTable
     {
         /// <inheritdoc />
@@ -70,7 +70,7 @@ namespace LoopCut.Infrastructure.Migrations
                     b.ToTable("users", (string)null);
                 });
 
-            modelBuilder.Entity("LoopCut.Domain.Entities.AuditLog", b =>
+            modelBuilder.Entity("LoopCut.Domain.Entities.AuditLogging", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
@@ -104,7 +104,7 @@ namespace LoopCut.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AuditLogs");
+                    b.ToTable("AuditLoggings");
                 });
 
             modelBuilder.Entity("LoopCut.Domain.Entities.Membership", b =>

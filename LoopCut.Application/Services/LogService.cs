@@ -30,16 +30,16 @@ namespace LoopCut.Application.Services
             };
         }
 
-        public async Task<BasePaginatedList<AuditLog>> GetAllLogsAsync(int pageIndex, int pageSize)
+        public async Task<BasePaginatedList<AuditLogging>> GetAllLogsAsync(int pageIndex, int pageSize)
         {
-            var query = _unitOfWork.GetRepository<AuditLog>().Entity;
-            var logs = await _unitOfWork.GetRepository<AuditLog>().GetPagging(query, pageIndex, pageSize);
+            var query = _unitOfWork.GetRepository<AuditLogging>().Entity;
+            var logs = await _unitOfWork.GetRepository<AuditLogging>().GetPagging(query, pageIndex, pageSize);
             return logs;
         }
 
-        public async Task<BasePaginatedList<AuditLog>> GetLogsByFilterAsync(int pageIndex, int pageSize, FilterLogDto filter)
+        public async Task<BasePaginatedList<AuditLogging>> GetLogsByFilterAsync(int pageIndex, int pageSize, FilterLogDto filter)
         {
-            var query = _unitOfWork.GetRepository<AuditLog>().Entity;
+            var query = _unitOfWork.GetRepository<AuditLogging>().Entity;
 
             // Filter by UserId
             if (!string.IsNullOrWhiteSpace(filter.UserId))
@@ -102,7 +102,7 @@ namespace LoopCut.Application.Services
             // Order by CreatedAt descending (newest first)
             query = query.OrderByDescending(x => x.CreatedAt);
 
-            return await _unitOfWork.GetRepository<AuditLog>()
+            return await _unitOfWork.GetRepository<AuditLogging>()
                 .GetPagging(query, pageIndex, pageSize);
         }
 
@@ -130,7 +130,7 @@ namespace LoopCut.Application.Services
         T? newValues = default,
         string? ipAddress = null)
         {
-            var log = new AuditLog
+            var log = new AuditLogging
             {
                 UserId = userId,
                 Action = action,
@@ -147,7 +147,7 @@ namespace LoopCut.Application.Services
                 Status = StatusEnum.Active
             };
 
-            await _unitOfWork.GetRepository<AuditLog>().InsertAsync(log);
+            await _unitOfWork.GetRepository<AuditLogging>().InsertAsync(log);
             await _unitOfWork.SaveChangesAsync();
         }
     }

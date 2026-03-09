@@ -173,6 +173,7 @@ namespace LoopCut.Infrastructure.Migrations
                     SubscriptionsName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    HomepageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Price = table.Column<double>(type: "float", nullable: false),
                     RemiderDays = table.Column<int>(type: "int", nullable: false),
                     IconUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),

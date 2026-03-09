@@ -1,14 +1,16 @@
 ﻿using LoopCut.Domain.Enums;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace LoopCut.Domain.Entities
 {
-    public class AuditLog
+    public class AuditLogging
     {
+        [Key]
         public string Id { get; set; } = Guid.NewGuid().ToString();
         public string? UserId { get; set; }
         public AuditActionEnum Action { get; set; }
