@@ -8,7 +8,7 @@ namespace LoopCut.Domain.Abstractions
         Task SaveChangesAsync();
         Task BeginTransactionAsync();
         Task CommitTransactionAsync();
-        Task RollBackAsync();
+        Task RollBackTransactionAsync();
         bool HasActiveTransaction();
 
 

@@ -85,7 +85,7 @@ namespace LoopCut.Application.Services
             }
             catch
             {
-                await _unitOfWork.RollBackAsync();
+                await _unitOfWork.RollBackTransactionAsync();
                 throw;
             }
         }

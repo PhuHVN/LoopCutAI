@@ -51,7 +51,7 @@ namespace LoopCut.Infrastructure.Implemention
             }
             catch
             {
-                await RollBackAsync();
+                await RollBackTransactionAsync();
                 throw;
             }
             finally
@@ -85,7 +85,7 @@ namespace LoopCut.Infrastructure.Implemention
             throw new NotImplementedException();
         }
 
-        public async Task RollBackAsync()
+        public async Task RollBackTransactionAsync()
         {
             if (_transaction != null)
             {

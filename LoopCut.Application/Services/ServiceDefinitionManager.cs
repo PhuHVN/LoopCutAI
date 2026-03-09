@@ -89,7 +89,7 @@ namespace LoopCut.Application.Services
             }
             catch (Exception ex)
             {
-                await _unitOfWork.RollBackAsync();
+                await _unitOfWork.RollBackTransactionAsync();
                 _logger.LogError(ex, "Error when creating service");
                 throw;
             }

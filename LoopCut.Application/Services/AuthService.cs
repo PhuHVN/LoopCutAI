@@ -7,6 +7,7 @@ using LoopCut.Domain.Abstractions;
 using LoopCut.Domain.Entities;
 using LoopCut.Domain.Enums;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -22,12 +23,15 @@ namespace LoopCut.Application.Services
         private readonly IConfiguration _configuration;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _http;
-        public AuthService(IUnitOfWork unitOfWork, IConfiguration configuration, IMapper mapper, IHttpContextAccessor http)
+        private readonly ILogService _logService;
+
+        public AuthService(IUnitOfWork unitOfWork, IConfiguration configuration, IMapper mapper, IHttpContextAccessor http, ILogService logService)
         {
             _unitOfWork = unitOfWork;
             _configuration = configuration;
             _mapper = mapper;
             _http = http;
+            _logService = logService;
         }
 
         public async Task<string> GenerateJwtToken(Accounts accounts)
@@ -75,16 +79,24 @@ namespace LoopCut.Application.Services
                 .FindAsync(a => a.Email == request.Email && a.Status == StatusEnum.Active);
             if (existingAccount == null)
             {
-                throw new UnauthorizedAccessException("Account not found.");
+                throw new UnauthorizedAccessException("Invalid email or password.");
             }
             if (!BCrypt.Net.BCrypt.Verify(request.Password, existingAccount.Password))
             {
-                throw new UnauthorizedAccessException("Invalid password.");
+                throw new UnauthorizedAccessException("Invalid email or password.");
             }
             if (existingAccount.Status != Domain.Enums.StatusEnum.Active)
             {
                 throw new UnauthorizedAccessException("Account is not active.");
             }
+            await _logService.LogAsync(
+                action: AuditActionEnum.Login,
+                entityId: existingAccount.Id,
+                entityName: nameof(Accounts),
+                newValues: (object?)null,
+                oldValues: (object?)null
+
+            );
             return new AuthResponse
             {
                 Token = await GenerateJwtToken(existingAccount)
@@ -113,11 +125,19 @@ namespace LoopCut.Application.Services
                     throw new UnauthorizedAccessException("Account not found.");
                     //logic add new account 
                 }
+                await _logService.LogAsync(
+                    action: AuditActionEnum.Login,
+                    entityId: existingAccount.Id,
+                    entityName: nameof(Accounts),
+                    newValues: (object?)null,
+                    oldValues: (object?)null
+                );
                 return new AuthResponse
                 {
                     Token = await GenerateJwtToken(existingAccount),
                 };
-            }catch(AuthenticationException e)
+            }
+            catch (AuthenticationException e)
             {
                 throw new UnauthorizedAccessException("Error during Google login", e);
             }
@@ -145,27 +165,54 @@ namespace LoopCut.Application.Services
 
         public async Task<AccountResponse> Register(AccountRequest account)
         {
-            var existingAccount = await  _unitOfWork.GetRepository<Accounts>()
+            var existingAccount = await _unitOfWork.GetRepository<Accounts>()
                 .FindAsync(a => a.Email == account.Email && a.Status == StatusEnum.Active);
             if (existingAccount != null)
             {
                 throw new ArgumentException("Account with the provided email already exists.");
             }
-            var passwordHashing = BCrypt.Net.BCrypt.HashPassword(account.Password);
-            var newAccount = new Accounts
+            await _unitOfWork.BeginTransactionAsync();
+            try
             {
-                Email = account.Email,
-                Password = passwordHashing,
-                FullName = account.FullName,
-                Address = account.Address,
-                PhoneNumber = account.PhoneNumber,
-                CreatedAt = DateTime.UtcNow,
-                Role = RoleEnum.User,
-                Status = StatusEnum.Active
-            };
-            await _unitOfWork.GetRepository<Accounts>().InsertAsync(newAccount);
-            await _unitOfWork.SaveChangesAsync();
-            return _mapper.Map<AccountResponse>(newAccount);
+                var passwordHashing = BCrypt.Net.BCrypt.HashPassword(account.Password);
+                var newAccount = new Accounts
+                {
+                    Email = account.Email,
+                    Password = passwordHashing,
+                    FullName = account.FullName,
+                    Address = account.Address,
+                    PhoneNumber = account.PhoneNumber,
+                    CreatedAt = DateTime.UtcNow,
+                    Role = RoleEnum.User,
+                    Status = StatusEnum.Active
+                };
+
+                await _unitOfWork.GetRepository<Accounts>().InsertAsync(newAccount);
+                await _unitOfWork.SaveChangesAsync();
+                await _logService.LogAsync(
+                    action: AuditActionEnum.Create,
+                    entityId: newAccount.Id,
+                    entityName: nameof(Accounts),
+                    newValues: new
+                    {
+                        newAccount.Email,
+                        newAccount.FullName,
+                        newAccount.Address,
+                        newAccount.PhoneNumber,
+                        newAccount.Role,
+                        newAccount.Status
+                    }
+
+                );
+                await _unitOfWork.CommitTransactionAsync();
+                return _mapper.Map<AccountResponse>(newAccount);
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollBackTransactionAsync();
+                throw new Exception("Error during registration", ex);
+
+            }
         }
     }
 }

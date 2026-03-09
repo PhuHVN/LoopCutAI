@@ -136,7 +136,7 @@ namespace LoopCut.Application.Services
                 if (existingPayment == null)
                 {
                     _logger.LogWarning("Payment not found for OrderCode: {OrderCode}", data.OrderCode);
-                    await unitOfWork.RollBackAsync();
+                    await unitOfWork.RollBackTransactionAsync();
                     return false;
                 }
 
@@ -166,7 +166,7 @@ namespace LoopCut.Application.Services
                     default:
                         _logger.LogError("Unknown payment status code: {Code} for OrderCode: {OrderCode}",
                             data.Code, data.OrderCode);
-                        await unitOfWork.RollBackAsync();
+                        await unitOfWork.RollBackTransactionAsync();
                         return false;
                 }
 
@@ -175,7 +175,7 @@ namespace LoopCut.Application.Services
             }
             catch (Exception ex)
             {
-                await unitOfWork.RollBackAsync();
+                await unitOfWork.RollBackTransactionAsync();
                 _logger.LogError(ex, "PayOS webhook verification failed for OrderCode: {OrderCode}",
                     webhookData?.Code);
                 return false;
