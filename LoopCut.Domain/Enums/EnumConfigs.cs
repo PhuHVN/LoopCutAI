@@ -32,4 +32,12 @@ namespace LoopCut.Domain.Enums
         Failed = 2,
         Process = 3
     }
+    public enum AuditActionEnum
+    {
+        Create = 0,
+        Update = 1,
+        Delete = 2,
+        Login = 3,
+        Logout = 4,
+    }
 }

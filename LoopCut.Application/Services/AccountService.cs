@@ -9,6 +9,7 @@ using LoopCut.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -20,11 +21,13 @@ namespace LoopCut.Application.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper mapper;
         private readonly IStorageService _storageService;
-        public AccountService(IUnitOfWork unitOfWork, IMapper mapper, IStorageService storageService)
+        private readonly ILogService _logService;
+        public AccountService(IUnitOfWork unitOfWork, IMapper mapper, IStorageService storageService, ILogService logService)
         {
             _unitOfWork = unitOfWork;
             this.mapper = mapper;
             _storageService = storageService;
+            _logService = logService;
 
         }
         public async Task<AccountResponse> CreateAccount(AccountRequest account)
@@ -96,17 +99,24 @@ namespace LoopCut.Application.Services
             {
                 throw new KeyNotFoundException("Account not found.");
             }
+
+            var oldValues = new Dictionary<string, object?>
+            {
+                { nameof(existingAccount.FullName), existingAccount.FullName },
+                { nameof(existingAccount.Address), existingAccount.Address },
+                { nameof(existingAccount.PhoneNumber), existingAccount.PhoneNumber },
+                { nameof(existingAccount.AvatarUrl), existingAccount.AvatarUrl }
+            };
             var isUpdate = false;
+            string? newAvatarUrl = null;
+            string? oldAvatarUrl = null;
+
             if (account.AvatarUrl != null && account.AvatarUrl.Length > 0)
             {
-                //add new avt
-                var avatarUrl = await _storageService.UploadFileAsync(account.AvatarUrl);
-                if(!string.IsNullOrEmpty(existingAccount.AvatarUrl))
-                {
-                    //delete old avt
-                    await _storageService.DeleteFileAsync(existingAccount.AvatarUrl);
-                }
-                existingAccount.AvatarUrl = avatarUrl;
+                //add new avatar to storage and get url, then delete old avatar if exist
+                newAvatarUrl = await _storageService.UploadFileAsync(account.AvatarUrl);
+                oldAvatarUrl = existingAccount.AvatarUrl;
+                existingAccount.AvatarUrl = newAvatarUrl;
                 isUpdate = true;
             }
             if (!string.IsNullOrEmpty(account.FullName) && existingAccount.FullName != account.FullName)
@@ -124,13 +134,58 @@ namespace LoopCut.Application.Services
                 existingAccount.PhoneNumber = account.PhoneNumber;
                 isUpdate = true;
             }
-            if (isUpdate)
+            if (!isUpdate)
             {
+                return mapper.Map<AccountResponse>(existingAccount);
+            }
+            await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+
                 existingAccount.LastUpdatedAt = DateTime.UtcNow;
                 await _unitOfWork.GetRepository<Accounts>().UpdateAsync(existingAccount);
                 await _unitOfWork.SaveChangesAsync();
+
+                var newValues = new Dictionary<string, object?>
+                {
+                    { nameof(existingAccount.FullName), existingAccount.FullName },
+                    { nameof(existingAccount.Address), existingAccount.Address },
+                    { nameof(existingAccount.PhoneNumber), existingAccount.PhoneNumber },
+                    { nameof(existingAccount.AvatarUrl), existingAccount.AvatarUrl }
+                };
+
+                await _logService.LogAsync(
+                    action: AuditActionEnum.Update,
+                    entityName: nameof(Accounts),
+                    entityId: existingAccount.Id,
+                    newValues: newValues,
+                    oldValues: oldValues
+                    );
+
+                await _unitOfWork.CommitTransactionAsync();
+                if (!string.IsNullOrEmpty(oldAvatarUrl))
+                {
+                    try
+                    {
+                        await _storageService.DeleteFileAsync(oldAvatarUrl);
+                    }
+                    catch { }
+                }
+                return mapper.Map<AccountResponse>(existingAccount);
             }
-            return mapper.Map<AccountResponse>(existingAccount);
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollBackTransactionAsync();
+                if(!string.IsNullOrEmpty(newAvatarUrl))
+                {
+                    try
+                    {
+                        await _storageService.DeleteFileAsync(newAvatarUrl);
+                    }
+                    catch { }
+                }
+                throw;
+            }
 
         }
     }

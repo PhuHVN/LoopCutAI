@@ -16,13 +16,15 @@ namespace LoopCut.Application.Services
         private readonly IUserService _userService;
         private readonly ILogger<SubscriptionService> _logger;
         private readonly IStorageService _storageService;
+        private readonly ILogService _logService;
 
-        public SubscriptionService(IUnitOfWork unitOfWork, IUserService userService, ILogger<SubscriptionService> logger, IStorageService storageService)
+        public SubscriptionService(IUnitOfWork unitOfWork, IUserService userService, ILogger<SubscriptionService> logger, IStorageService storageService, ILogService logService)
         {
             _unitOfWork = unitOfWork;
             _userService = userService;
             _logger = logger;
             _storageService = storageService;
+            _logService = logService;
         }
 
         public async Task<SubscriptionResponseV1> CreateSubscriptionByUserAsync(SubscriptionRequest subscriptionRequest)
@@ -47,20 +49,37 @@ namespace LoopCut.Application.Services
                 StartDate = subscriptionRequest.StartDate,
                 EndDate = subscriptionRequest.EndDate,
                 Price = subscriptionRequest.Price,
+                HomepageUrl = subscriptionRequest.HomepageUrl,
                 RemiderDays = subscriptionRequest.RemiderDays,
                 IconUrl = subscriptionRequest.IconUrl != null ? await _storageService.UploadFileAsync(subscriptionRequest.IconUrl) : null,
                 CreatedAt = DateTime.UtcNow,
                 Status = SubscriptionEnums.Active
             };
-
+            await _unitOfWork.BeginTransactionAsync();
             try
             {
+
                 await _unitOfWork.SubscriptionRepository.InsertAsync(subscription);
                 await _unitOfWork.SaveChangesAsync();
+                await _logService.LogAsync(
+                    action: AuditActionEnum.Create,
+                    entityName: nameof(Subscriptions),
+                    entityId: subscription.Id,
+                    newValues: new
+                    {
+                        subscription.SubscriptionsName,
+                        subscription.StartDate,
+                        subscription.EndDate,                    
+                        subscription.Status
+                    }
+
+                );
+                await _unitOfWork.CommitTransactionAsync();
                 return MapToSubV1(subscription);
             }
             catch (Exception ex)
             {
+                await _unitOfWork.RollBackTransactionAsync();
                 _logger.LogError(ex, "Error occurred while creating subscription for user {UserId}", user.Id);
                 throw;
 
@@ -90,11 +109,29 @@ namespace LoopCut.Application.Services
             // Soft delete by setting status to Inactive
             subscription.Status = SubscriptionEnums.Inactive;
             subscription.LastUpdatedAt = DateTime.UtcNow;
-
+            await _unitOfWork.BeginTransactionAsync();
             try
             {
                 await _unitOfWork.SubscriptionRepository.UpdateAsync(subscription);
                 await _unitOfWork.SaveChangesAsync();
+                await _logService.LogAsync(
+                    action: AuditActionEnum.Delete,
+                    entityName: nameof(Subscriptions),
+                    entityId: subscription.Id,
+                    oldValues: new
+                    {
+                        subscription.Id,
+                        subscription.SubscriptionsName,
+                        subscription.StartDate,
+                        subscription.EndDate,
+                        subscription.HomepageUrl,
+                        subscription.Price,
+                        subscription.RemiderDays,
+                        subscription.IconUrl,
+                        subscription.Status
+                    }
+                );
+                await _unitOfWork.CommitTransactionAsync();
                 return MapToSubV1(subscription);
             }
             catch (Exception ex)
@@ -313,6 +350,7 @@ namespace LoopCut.Application.Services
 
             subscription.SubscriptionsName = subscriptionRequest.SubscriptionsName;
             subscription.StartDate = subscriptionRequest.StartDate;
+            subscription.HomepageUrl = subscriptionRequest.HomepageUrl;
             subscription.EndDate = subscriptionRequest.EndDate;
             subscription.Price = subscriptionRequest.Price;
             subscription.RemiderDays = subscriptionRequest.RemiderDays;
@@ -341,7 +379,8 @@ namespace LoopCut.Application.Services
                 StartDate = subscription.StartDate,
                 EndDate = subscription.EndDate,
                 Price = subscription.Price,
-                RemiderDays = subscription.RemiderDays, 
+                HomepageUrl = subscription.HomepageUrl,
+                RemiderDays = subscription.RemiderDays,
                 IconUrl = subscription.IconUrl,
                 Status = subscription.Status,
                 PlanId = subscription.ServicePlan?.Id ?? string.Empty,
@@ -363,6 +402,7 @@ namespace LoopCut.Application.Services
                 StartDate = subscription.StartDate,
                 EndDate = subscription.EndDate,
                 Price = subscription.Price,
+                HomepageUrl = subscription.HomepageUrl,
                 RemiderDays = subscription.RemiderDays,
                 CreatedAt = subscription.CreatedAt,
                 LastUpdatedAt = subscription.LastUpdatedAt,
