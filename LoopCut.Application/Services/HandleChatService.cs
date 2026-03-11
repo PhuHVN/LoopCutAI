@@ -26,6 +26,28 @@ namespace LoopCut.Application.Services
             _subscriptionService = subscriptionService;
         }
 
+        public async Task<string> HandleCancelSubscriptionAsync(AiCommand command)
+        {
+            if (!command.Data.TryGetProperty("name", out var subscriptionNameProp))
+            {
+                return ("Mình cần biết tên gói đăng ký bạn muốn hủy. Bạn có thể cung cấp tên gói đăng ký đó không?");
+            }
+            var subscriptionName = subscriptionNameProp.GetString();
+            if (string.IsNullOrEmpty(subscriptionName))
+            {
+                return ("Hmm, có vẻ tên gói đăng ký bạn nhập chưa đúng. Bạn thử nhập lại tên gói đăng ký giúp mình nhé!");
+            }
+            var subscription = await _subscriptionService.CancelSubscriptionByNameAsync(subscriptionName);
+            if (subscription == null)
+            {
+                return $"Mình không tìm thấy gói đăng ký '{subscriptionName}' trong hệ thống. " +
+                       $"Bạn có thể kiểm tra lại tên gói đăng ký hoặc hỏi mình về các gói đăng ký có sẵn nha!";
+            }
+            return $"Gói đăng ký '{subscriptionName}' đã được hủy thành công. " +
+                   $"Nếu bạn muốn đăng ký lại hoặc tìm hiểu về các gói đăng ký khác, mình luôn sẵn sàng hỗ trợ bạn nhé!";
+
+        }
+
         public Task<string> HandleMembershipCompareAsync(AiCommand command)
         {
             throw new NotImplementedException();
@@ -61,7 +83,7 @@ namespace LoopCut.Application.Services
 
         public async Task<string> HandleMembershipListAsync(AiCommand command)
         {
-            var memberships = await _membershipService.GetAllMemberships(1,10);
+            var memberships = await _membershipService.GetAllMemberships(1, 10);
             if (memberships.TotalItems == 0)
             {
                 return "Hiện tại mình không tìm thấy gói membership nào trong hệ thống. " +
@@ -136,7 +158,7 @@ namespace LoopCut.Application.Services
                 Status = Domain.Enums.PaymentStatusEnum.Completed
 
             };
-            var payments = await _paymentService.GetAllPayments(1, 5,filter);
+            var payments = await _paymentService.GetAllPayments(1, 5, filter);
             if (payments.TotalItems == 0)
             {
                 return "Mình không tìm thấy giao dịch thanh toán nào trong lịch sử của bạn. " +
@@ -156,8 +178,9 @@ namespace LoopCut.Application.Services
 
         public async Task<string> HandleSubscriptionHistoryAsync(AiCommand command)
         {
-            var subscription = await _subscriptionService.GetAllSubscriptionsByUserLoginAsync(1,10);
-            if (subscription == null) {
+            var subscription = await _subscriptionService.GetAllSubscriptionsByUserLoginAsync(1, 10);
+            if (subscription == null)
+            {
                 return $"Bạn có thể kiểm tra lại email hoặc hỏi mình về các gói đăng ký có sẵn nha!";
             }
             var response = $"Mình tìm thấy rồi! Đây là thông tin gói đăng ký của bạn:\n\n";

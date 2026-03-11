@@ -5,6 +5,7 @@ namespace LoopCut.Application.Interfaces
     public interface IUserService
     {
         Task<Accounts> GetCurrentUserLoginAsync();
-        string? GetIpAddressAsync();
+        string? GetCurrentUserId();
+        string? GetIpAddress();
     }
 }
