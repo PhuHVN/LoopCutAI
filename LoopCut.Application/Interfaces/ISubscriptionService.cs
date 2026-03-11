@@ -20,5 +20,6 @@ namespace LoopCut.Application.Interfaces
         Task<BasePaginatedList<SubscriptionResponseV2>> GetAllSubscriptionsWithPlanAndServiceByManagerAsync(int pageIndex, int pageSize, string subName, int reminderDays, string serviceName);
 
         Task<SubscriptionResponseV2> GetSubscriptionWithPlanAndServiceByIdByManagerAsync(string id);
+        Task<SubscriptionResponseV1> CancelSubscriptionByNameAsync(string name);
     }
 }

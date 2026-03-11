@@ -108,10 +108,10 @@ namespace LoopCut.Application.Services
 
         public async Task LogAsync<T>(AuditActionEnum action,string entityName,string entityId,T? oldValues = default,T? newValues = default)
         {
-            var user = await _userService.GetCurrentUserLoginAsync();         
-            var getIpAddress = _userService.GetIpAddressAsync();
+            var userId = _userService.GetCurrentUserId();
+            var getIpAddress = _userService.GetIpAddress();
             await LogAsync(
-            userId: user?.Id,
+            userId: userId,
             action: action,
             entityName: entityName,
             entityId: entityId,
@@ -132,7 +132,7 @@ namespace LoopCut.Application.Services
         {
             var log = new AuditLogging
             {
-                UserId = userId,
+                UserId = userId ?? "Unknow" ,
                 Action = action,
                 EntityName = entityName,
                 EntityId = entityId,
@@ -142,7 +142,7 @@ namespace LoopCut.Application.Services
                 NewValues = newValues != null
                     ? JsonSerializer.Serialize(newValues, _jsonOptions)
                     : string.Empty,
-                IpAddress = ipAddress ?? string.Empty,
+                IpAddress = ipAddress ?? "",
                 CreatedAt = DateTime.UtcNow,
                 Status = StatusEnum.Active
             };
