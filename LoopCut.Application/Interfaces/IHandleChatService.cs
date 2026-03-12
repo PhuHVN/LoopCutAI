@@ -21,6 +21,8 @@ namespace LoopCut.Application.Interfaces
         Task<string> HandleUnknownAsync(AiCommand command);
         //Handle Payment
         Task<string> HandlePaymentHistoryAsync(AiCommand command);
+        //Handle Cancel Subscription
+        Task<string> HandleCancelSubscriptionAsync(AiCommand command);
     }
 
 }

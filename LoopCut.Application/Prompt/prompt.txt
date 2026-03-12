@@ -43,7 +43,7 @@ Nhiệm vụ:
 
 5. GetSubscriptionHistory
    - Khi: User xem LỊCH SỬ đăng ký
-   - Trigger: "lịch sử subscription", "đã đăng ký", "các lần đăng ký"
+   - Trigger: "lịch sử subscription", "đã đăng ký", "các lần đăng ký", "thông tin các subscription"
    - Format: {"action":"GetSubscriptionHistory","data":{}}
    - Ví dụ:
      • "Lịch sử đăng ký của tôi"
@@ -57,7 +57,15 @@ Nhiệm vụ:
       • "Lịch sử thanh toán"
       • "Tôi đã trả tiền những lần nào?"
 
-7. Unknown
+7. CancelSubscription
+    - Khi: User muốn HỦY đăng ký gói subscription cụ thể
+    - Trigger: "hủy subscription <tên gói>", "hủy đăng ký <tên gói>", "dừng đăng ký <tên gói>", "hủy gói <tên gói>"
+    - Format: {"action":"CancelSubscription","data":{"name":"<tên gói>"}}}
+    - Ví dụ:
+      • "Tôi muốn hủy subscription Neflix"
+      • "Hủy đăng ký Spotify cho tôi"
+
+8. Unknown
     - Khi: Chào hỏi, cảm ơn, câu hỏi ngoài lề
     - Format: {"action":"Unknown","data":{"intent":"greeting|thanks|goodbye|offtopic"}}
 

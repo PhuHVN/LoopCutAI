@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using LoopCut.Application.DTOs.AccountDtos;
+using LoopCut.Application.DTOs.FilterLogDtos;
 using LoopCut.Application.DTOs.MembershipDtos;
 using LoopCut.Application.DTOs.PaymentDTO;
 using LoopCut.Application.DTOs.UserMembershipDtos;
@@ -46,6 +47,8 @@ namespace LoopCut.Application.DTOs
                 .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Amount))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
                 .ForMember(dest => dest.UpdateAt, opt => opt.MapFrom(src => src.UpdatedAt));
+            CreateMap<AuditLogging, LogResponse>();
+                
         }
 
     }

@@ -89,7 +89,12 @@ namespace LoopCut.Application.Services
             {
                 throw new UnauthorizedAccessException("Account is not active.");
             }
-            
+            await _logService.LogAsync(
+                action: Domain.Enums.AuditActionEnum.Login,                
+                entityName: "Accounts",
+                entityId: existingAccount.Id,
+                oldValues: (object?) null
+            );
             return new AuthResponse
             {
                 Token = await GenerateJwtToken(existingAccount)
@@ -118,7 +123,12 @@ namespace LoopCut.Application.Services
                     throw new UnauthorizedAccessException("Account not found.");
                     //logic add new account 
                 }
-                
+                await _logService.LogAsync(
+                    action: Domain.Enums.AuditActionEnum.Login,
+                    entityName: "Accounts",
+                    entityId: existingAccount.Id,
+                    oldValues: (object?)null
+                );
                 return new AuthResponse
                 {
                     Token = await GenerateJwtToken(existingAccount),
@@ -175,7 +185,13 @@ namespace LoopCut.Application.Services
                 };
 
                 await _unitOfWork.GetRepository<Accounts>().InsertAsync(newAccount);
-                await _unitOfWork.SaveChangesAsync();             
+                await _unitOfWork.SaveChangesAsync();     
+                await _logService.LogAsync(
+                    action: Domain.Enums.AuditActionEnum.Create,
+                    entityName: "Accounts",
+                    entityId: newAccount.Id,
+                    oldValues: (object?)null
+                    );
                 await _unitOfWork.CommitTransactionAsync();
                 return _mapper.Map<AccountResponse>(newAccount);
             }

@@ -1,4 +1,5 @@
-﻿using LoopCut.Application.DTOs.FilterLogDtos;
+﻿using AutoMapper;
+using LoopCut.Application.DTOs.FilterLogDtos;
 using LoopCut.Application.Interfaces;
 using LoopCut.Domain.Abstractions;
 using LoopCut.Domain.Entities;
@@ -18,11 +19,13 @@ namespace LoopCut.Application.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserService _userService;
         private readonly JsonSerializerOptions _jsonOptions;
-
-        public LogService(IUnitOfWork unitOfWork, IUserService userService)
+        private readonly IMapper _mapper;
+        
+        public LogService(IUnitOfWork unitOfWork, IUserService userService, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _userService = userService;
+            _mapper = mapper;     
             _jsonOptions = new JsonSerializerOptions
             {
                 WriteIndented = false,
@@ -30,14 +33,28 @@ namespace LoopCut.Application.Services
             };
         }
 
-        public async Task<BasePaginatedList<AuditLogging>> GetAllLogsAsync(int pageIndex, int pageSize)
+        public async Task<BasePaginatedList<LogResponse>> GetAllLogsAsync(int pageIndex, int pageSize)
         {
             var query = _unitOfWork.GetRepository<AuditLogging>().Entity;
             var logs = await _unitOfWork.GetRepository<AuditLogging>().GetPagging(query, pageIndex, pageSize);
-            return logs;
+         
+            var response = _mapper.Map<BasePaginatedList<LogResponse>>(logs);
+            foreach (var log in response.Items)
+            {
+                if (log.UserId != null)
+                {
+                    var userInfo = await _unitOfWork.GetRepository<Accounts>().GetByIdAsync(log.UserId);
+                    log.Username = userInfo?.FullName ?? "Unknown User";
+                }
+                else
+                {
+                    log.Username = "Unknown User";
+                }
+            }
+            return response;
         }
 
-        public async Task<BasePaginatedList<AuditLogging>> GetLogsByFilterAsync(int pageIndex, int pageSize, FilterLogDto filter)
+        public async Task<BasePaginatedList<LogResponse>> GetLogsByFilterAsync(int pageIndex, int pageSize, FilterLogDto filter)
         {
             var query = _unitOfWork.GetRepository<AuditLogging>().Entity;
 
@@ -102,16 +119,18 @@ namespace LoopCut.Application.Services
             // Order by CreatedAt descending (newest first)
             query = query.OrderByDescending(x => x.CreatedAt);
 
-            return await _unitOfWork.GetRepository<AuditLogging>()
+            var logs = await _unitOfWork.GetRepository<AuditLogging>()
                 .GetPagging(query, pageIndex, pageSize);
+
+            return _mapper.Map<BasePaginatedList<LogResponse>>(logs);
         }
 
         public async Task LogAsync<T>(AuditActionEnum action,string entityName,string entityId,T? oldValues = default,T? newValues = default)
         {
-            var user = await _userService.GetCurrentUserLoginAsync();         
-            var getIpAddress = _userService.GetIpAddressAsync();
+            var userId = _userService.GetCurrentUserId();
+            var getIpAddress = _userService.GetIpAddress();
             await LogAsync(
-            userId: user?.Id,
+            userId: userId,
             action: action,
             entityName: entityName,
             entityId: entityId,
@@ -132,7 +151,7 @@ namespace LoopCut.Application.Services
         {
             var log = new AuditLogging
             {
-                UserId = userId,
+                UserId = userId ?? "Unknow" ,
                 Action = action,
                 EntityName = entityName,
                 EntityId = entityId,
@@ -142,7 +161,7 @@ namespace LoopCut.Application.Services
                 NewValues = newValues != null
                     ? JsonSerializer.Serialize(newValues, _jsonOptions)
                     : string.Empty,
-                IpAddress = ipAddress ?? string.Empty,
+                IpAddress = ipAddress ?? "",
                 CreatedAt = DateTime.UtcNow,
                 Status = StatusEnum.Active
             };

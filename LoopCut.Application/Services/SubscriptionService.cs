@@ -69,7 +69,7 @@ namespace LoopCut.Application.Services
                     {
                         subscription.SubscriptionsName,
                         subscription.StartDate,
-                        subscription.EndDate,                    
+                        subscription.EndDate,
                         subscription.Status
                     }
 
@@ -270,6 +270,90 @@ namespace LoopCut.Application.Services
             return MapToSubV1(subscription);
         }
 
+        public async Task<SubscriptionResponseV1> CancelSubscriptionByNameAsync(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentException("Subscription name must be provided.", nameof(name));
+            }
+            var user = await _userService.GetCurrentUserLoginAsync();
+            var sub = await _unitOfWork.GetRepository<Subscriptions>().FindAsync(s => s.SubscriptionsName == name && s.AccountId == user.Id && s.Status != SubscriptionEnums.Inactive);
+            if (sub == null)
+            {
+                throw new KeyNotFoundException("Subscription not found.");
+            }
+            if (sub.Status == SubscriptionEnums.Cancelled)
+            {
+                throw new KeyNotFoundException("Subscription is cancel now");
+            }
+            var deletedSub = await CancelSubscriptionAsync(sub.Id);
+            if (deletedSub != null)
+            {
+                return deletedSub;
+            }
+            else
+            {
+                throw new InvalidOperationException("Failed to delete subscription.");
+            }
+        }
+
+        public async Task<SubscriptionResponseV1> CancelSubscriptionAsync(string id)
+        {
+            var user = await _userService.GetCurrentUserLoginAsync();
+            // Find the subscription by id
+            var subscription = await _unitOfWork.SubscriptionRepository.GetByIdAsync(id);
+            if (subscription == null)
+            {
+                throw new KeyNotFoundException("Subscription not found.");
+            }
+
+            if (subscription.Status == SubscriptionEnums.Inactive)
+            {
+                throw new InvalidOperationException("Subscription is already deleted.");
+            }
+            // Check if the subscription belongs to the user
+            if (subscription.AccountId != user.Id)
+            {
+                throw new UnauthorizedAccessException("You do not have permission to delete this subscription.");
+            }
+
+            // Soft delete by setting status to Cancelled
+            subscription.Status = SubscriptionEnums.Cancelled;
+            subscription.LastUpdatedAt = DateTime.UtcNow;
+            await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                await _unitOfWork.SubscriptionRepository.UpdateAsync(subscription);
+                await _unitOfWork.SaveChangesAsync();
+                await _logService.LogAsync(
+                    action: AuditActionEnum.Delete,
+                    entityName: nameof(Subscriptions),
+                    entityId: subscription.Id,
+                    oldValues: new
+                    {
+                        subscription.Id,
+                        subscription.SubscriptionsName,
+                        subscription.StartDate,
+                        subscription.EndDate,
+                        subscription.HomepageUrl,
+                        subscription.Price,
+                        subscription.RemiderDays,
+                        subscription.IconUrl,
+                        subscription.Status
+                    }
+                );
+                await _unitOfWork.CommitTransactionAsync();
+                return MapToSubV1(subscription);
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollBackTransactionAsync();
+                _logger.LogError(ex, "Error occurred while deleting subscription {SubscriptionId} for user {UserId}", id, user.Id);
+                throw;
+            }
+
+        }
+
         public async Task<BasePaginatedList<SubscriptionResponseV2>> GetSubscriptionStatusByUserLoginAsync(int pageIndex, int pageSize)
         {
             var user = await _userService.GetCurrentUserLoginAsync();
@@ -355,14 +439,43 @@ namespace LoopCut.Application.Services
             subscription.Price = subscriptionRequest.Price;
             subscription.RemiderDays = subscriptionRequest.RemiderDays;
             subscription.LastUpdatedAt = DateTime.UtcNow;
+            await _unitOfWork.BeginTransactionAsync();
             try
             {
                 await _unitOfWork.SubscriptionRepository.UpdateAsync(subscription);
                 await _unitOfWork.SaveChangesAsync();
+                await _logService.LogAsync(
+                    action: AuditActionEnum.Update,
+                    entityName: nameof(Subscriptions),
+                    entityId: subscription.Id,
+                    oldValues: new
+                    {
+                        subscription.SubscriptionsName,
+                        subscription.StartDate,
+                        subscription.EndDate,
+                        subscription.HomepageUrl,
+                        subscription.Price,
+                        subscription.RemiderDays,
+                        subscription.IconUrl,
+                        subscription.Status
+                    },
+                    newValues: new
+                    {
+                        subscription.SubscriptionsName,
+                        subscription.StartDate,
+                        subscription.EndDate,
+                        subscription.HomepageUrl,
+                        subscription.Price,
+                        subscription.RemiderDays,
+                        subscription.IconUrl,
+                        subscription.Status
+                    }
+                );
                 return MapToSubV1(subscription);
             }
             catch (Exception ex)
             {
+                await _unitOfWork.RollBackTransactionAsync();
                 _logger.LogError(ex, "Error occurred while updating subscription {SubscriptionId} for user {UserId}", id, user.Id);
                 throw;
             }

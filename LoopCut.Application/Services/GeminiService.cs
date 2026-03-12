@@ -77,6 +77,7 @@ namespace LoopCut.Application.Services
                 "GetMembershipInfo" => await _handleChatService.HandleMembershipInfoAsync(command),
                 "GetMembershipList" => await _handleChatService.HandleMembershipListAsync(command),
                 "GetPaymentHistory" => await _handleChatService.HandlePaymentHistoryAsync(command),
+                "CancelSubscription" => await _handleChatService.HandleCancelSubscriptionAsync(command),
                 _ => await _handleChatService.HandleUnknownAsync(command)
             };
         }
@@ -134,7 +135,7 @@ namespace LoopCut.Application.Services
             if (lower.Contains("tam biet") || lower == "bye")
                 return "Tạm biệt bạn! Chúc bạn một ngày tuyệt vời!";
 
-            return null; 
+            return null;
         }
 
         private static string CleanJson(string reply)
