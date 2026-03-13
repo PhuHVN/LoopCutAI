@@ -90,10 +90,10 @@ namespace LoopCut.Application.Services
                 throw new UnauthorizedAccessException("Account is not active.");
             }
             await _logService.LogAsync(
-                action: Domain.Enums.AuditActionEnum.Login,                
+                action: Domain.Enums.AuditActionEnum.Login,
                 entityName: "Accounts",
                 entityId: existingAccount.Id,
-                oldValues: (object?) null
+                oldValues: (object?)null
             );
             return new AuthResponse
             {
@@ -168,6 +168,12 @@ namespace LoopCut.Application.Services
             {
                 throw new ArgumentException("Account with the provided email already exists.");
             }
+            var existingMembership = await _unitOfWork.GetRepository<Membership>()
+                .FindAsync(m => m.Name.ToLower() == "basic" && m.Status == StatusEnum.Active);
+            if (existingMembership == null)
+            {
+                throw new InvalidOperationException("Basic membership not found. Please contact support.");
+            }
             await _unitOfWork.BeginTransactionAsync();
             try
             {
@@ -183,9 +189,20 @@ namespace LoopCut.Application.Services
                     Role = RoleEnum.User,
                     Status = StatusEnum.Active
                 };
-
+            
                 await _unitOfWork.GetRepository<Accounts>().InsertAsync(newAccount);
-                await _unitOfWork.SaveChangesAsync();     
+                await _unitOfWork.SaveChangesAsync();
+                // Assign basic membership to the new account
+                var userMembership = new UserMembership
+                {
+                    UserId = newAccount.Id,
+                    MembershipId = existingMembership.Id,
+                    StartDate = DateTime.UtcNow,
+                    EndDate = DateTime.UtcNow.AddMonths(existingMembership.DurationInMonths),
+                };
+                await _unitOfWork.GetRepository<UserMembership>().InsertAsync(userMembership);
+                await _unitOfWork.SaveChangesAsync();
+                // Log the registration action
                 await _logService.LogAsync(
                     action: Domain.Enums.AuditActionEnum.Create,
                     entityName: "Accounts",
