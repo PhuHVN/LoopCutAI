@@ -32,6 +32,23 @@ namespace LoopCut.Infrastructure.Seeder
                 await _context.SaveChangesAsync();
             }
         }
-
+        public async Task SeedBasicMembershipAsync()
+        {
+            var existingMembership = await _context.Memberships.FirstOrDefaultAsync(m => m.Name.ToLower() == "basic" && m.Status == Domain.Enums.StatusEnum.Active);
+                        if (existingMembership == null)
+            {
+                var basicMembership = new Membership
+                {
+                    Name = "Basic",
+                    Code = "BASIC01",
+                    Description = "Basic membership with limited features.",
+                    Price = 0,
+                    DurationInMonths = 99999,                
+                    Status = Domain.Enums.StatusEnum.Active
+                };
+                await _context.Memberships.AddAsync(basicMembership);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }

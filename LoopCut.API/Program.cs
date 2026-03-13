@@ -225,6 +225,7 @@ using (var scope = app.Services.CreateScope())
 {
     var seeder = scope.ServiceProvider.GetRequiredService<SeederData>();
     await seeder.SeedAdminAccountAsync();
+    await seeder.SeedBasicMembershipAsync();
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();

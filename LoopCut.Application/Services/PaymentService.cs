@@ -27,9 +27,11 @@ namespace LoopCut.Application.Services
         private readonly IConfiguration _configuration;
         private readonly ILogger<PaymentService> _logger;
         private readonly IUserMembershipService _userMembershipService;
+        private readonly ILogService _logService;
         private readonly IMapper mapper;
+        private readonly IPaymentRepository _paymentRepository;
 
-        public PaymentService(IConfiguration configuration, IUnitOfWork unitOfWork, ILogger<PaymentService> logger, IMapper mapper, IUserMembershipService userMembershipService)
+        public PaymentService(IConfiguration configuration, IUnitOfWork unitOfWork, ILogger<PaymentService> logger, IMapper mapper, IUserMembershipService userMembershipService, ILogService logService, IPaymentRepository paymentRepository)
         {
             _payOSClient = new PayOSClient(
                 configuration["PayOS:ClientId"]!,
@@ -41,12 +43,15 @@ namespace LoopCut.Application.Services
             _userMembershipService = userMembershipService;
             _logger = logger;
             this.mapper = mapper;
+            _logService = logService;
+            _paymentRepository = paymentRepository;
         }
 
 
         public async Task<PaymentResponsed> CreatePaymentLink(CreatePaymentRequest request)
         {
-            long orderCode = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            long orderCode = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                 + Random.Shared.Next(100, 999);
 
             var user = await unitOfWork.GetRepository<Accounts>().FindAsync(x => x.Id == request.UserId && x.Status == StatusEnum.Active);
             if (user == null)
@@ -58,8 +63,10 @@ namespace LoopCut.Application.Services
             {
                 throw new KeyNotFoundException("Membership not found");
             }
-            string baseUrl = !string.IsNullOrEmpty(request.ReturnUrlDomain) 
+
+            string baseUrl = !string.IsNullOrEmpty(request.ReturnUrlDomain)
                 ? request.ReturnUrlDomain : _configuration["PayOs:Url"]!;
+
             var paymentRequest = new CreatePaymentLinkRequest
             {
                 OrderCode = orderCode,
@@ -78,18 +85,35 @@ namespace LoopCut.Application.Services
                 Status = PaymentStatusEnum.Pending,
                 CreatedAt = DateTime.UtcNow,
             };
-            
-            var result = await _payOSClient.PaymentRequests.CreateAsync(paymentRequest);
-            
-            await unitOfWork.GetRepository<Payment>().InsertAsync(payment);
-            await unitOfWork.SaveChangesAsync();
-            return new PaymentResponsed
+            await unitOfWork.BeginTransactionAsync();
+            try
             {
-                CheckoutUrl = result.CheckoutUrl,
-                OrderCode = result.OrderCode,
-                Message = "Payment link created successfully"
-            };
+                var result = await _payOSClient.PaymentRequests.CreateAsync(paymentRequest);
 
+                await unitOfWork.GetRepository<Payment>().InsertAsync(payment);
+                await unitOfWork.SaveChangesAsync();
+                await _logService.LogAsync(
+                    action: AuditActionEnum.Create,
+                    entityName: nameof(Payment),
+                    entityId: payment.Id,
+                    newValues: $"Created payment with OrderCode: {payment.OrderCode}, UserId: {payment.UserId}, MembershipId: {payment.MembershipId}, Amount: {payment.Amount}, Status: {payment.Status}"
+                );
+                await unitOfWork.CommitTransactionAsync();
+                return new PaymentResponsed
+                {
+                    CheckoutUrl = result.CheckoutUrl,
+                    OrderCode = result.OrderCode,
+                    Message = "Payment link created successfully"
+                };
+
+            }
+            catch (Exception ex)
+            {
+                await unitOfWork.RollBackTransactionAsync();
+                _logger.LogError(ex, "Failed to create payment link for UserId: {UserId}, MembershipId: {MembershipId}",
+                    request.UserId, request.MembershipId);
+                throw new InvalidOperationException("Failed to create payment link. Please try again later.");
+            }
         }
 
         public async Task<PaymentDetailResponse> GetPaymentInfo(string OrderCode)
@@ -123,15 +147,12 @@ namespace LoopCut.Application.Services
 
         public async Task<bool> VerifyPaymentWebhook(Webhook webhookData)
         {
-             await unitOfWork.BeginTransactionAsync();
+            await unitOfWork.BeginTransactionAsync();
             try
             {
                 var data = await _payOSClient.Webhooks.VerifyAsync(webhookData);
-
-                var existingPayment = await unitOfWork.GetRepository<Payment>()
-                    .Entity
-                    .Where(x => x.OrderCode == data.OrderCode.ToString())
-                    .FirstOrDefaultAsync();
+                var orderCodeStr = data.OrderCode.ToString();
+                var existingPayment = await _paymentRepository.GetPaymentForUpdateAsync(orderCodeStr);
 
                 if (existingPayment == null)
                 {
@@ -146,21 +167,21 @@ namespace LoopCut.Application.Services
                     _logger.LogWarning("Webhook already processed for OrderCode: {OrderCode}. Current status: {Status}",
                         data.OrderCode, existingPayment.Status);
                     await unitOfWork.CommitTransactionAsync();
-                    return true; 
+                    return true;
                 }
 
                 switch (data.Code)
                 {
                     case "00":
-                        await UpdatePaymentWithTransaction(data.OrderCode.ToString(), PaymentStatusEnum.Completed);
+                        await UpdatePaymentWithTransaction(existingPayment, PaymentStatusEnum.Completed);
                         _logger.LogInformation("Payment completed for OrderCode: {OrderCode}", data.OrderCode);
                         break;
                     case "01":
-                        await UpdatePaymentWithTransaction(data.OrderCode.ToString(), PaymentStatusEnum.Failed);
+                        await UpdatePaymentWithTransaction(existingPayment, PaymentStatusEnum.Failed);
                         _logger.LogInformation("Payment failed for OrderCode: {OrderCode}", data.OrderCode);
                         break;
                     case "02":
-                        await UpdatePaymentWithTransaction(data.OrderCode.ToString(), PaymentStatusEnum.Process);
+                        await UpdatePaymentWithTransaction(existingPayment, PaymentStatusEnum.Process);
                         _logger.LogInformation("Payment processing for OrderCode: {OrderCode}", data.OrderCode);
                         break;
                     default:
@@ -169,7 +190,13 @@ namespace LoopCut.Application.Services
                         await unitOfWork.RollBackTransactionAsync();
                         return false;
                 }
-
+                await _logService.LogAsync(
+                    action: AuditActionEnum.Update,
+                    entityName: nameof(Payment),
+                    entityId: existingPayment.Id,
+                    newValues: $"Updated payment status to {existingPayment.Status} for OrderCode: {existingPayment.OrderCode}"
+                );
+                await unitOfWork.SaveChangesAsync();
                 await unitOfWork.CommitTransactionAsync();
                 return true;
             }
@@ -182,18 +209,8 @@ namespace LoopCut.Application.Services
             }
         }
 
-        private async Task UpdatePaymentWithTransaction(string orderId, PaymentStatusEnum status)
+        private async Task UpdatePaymentWithTransaction(Payment payment, PaymentStatusEnum status)
         {
-            var payment = await unitOfWork.GetRepository<Payment>()
-                .Entity
-                .Include(x => x.Membership)
-                .Where(x => x.OrderCode == orderId)
-                .FirstOrDefaultAsync();
-
-            if (payment == null)
-            {
-                throw new KeyNotFoundException($"Payment not found for OrderCode: {orderId}");
-            }
             if (status == PaymentStatusEnum.Completed &&
                 payment.Status != PaymentStatusEnum.Completed)
             {
@@ -206,62 +223,72 @@ namespace LoopCut.Application.Services
                         StartDate = DateTime.UtcNow,
                         EndDate = DateTime.UtcNow.AddMonths(payment.Membership.DurationInMonths)
                     };
-                    await _userMembershipService.AssignMembershipToUser(userMembershipReq);
 
-                    _logger.LogInformation("Successfully assigned membership {MembershipId} to user {UserId} for payment {OrderCode}",
-                        payment.MembershipId, payment.UserId, orderId);
+                    await _userMembershipService.AssignMembershipToUser(userMembershipReq);
                 }
                 catch (InvalidOperationException ex) when (ex.Message.Contains("already has an active membership"))
                 {
-                    _logger.LogWarning("User {UserId} already has active membership {MembershipId}. Payment {OrderCode} will be marked as completed anyway.",
-                        payment.UserId, payment.MembershipId, orderId);
+                    _logger.LogWarning("User already has active membership.");
                 }
             }
 
             payment.Status = status;
             payment.UpdatedAt = DateTime.UtcNow;
-
+            _logger.LogInformation("Updating payment status to {Status} for OrderCode: {OrderCode}", status, payment.OrderCode);
             await unitOfWork.GetRepository<Payment>().UpdateAsync(payment);
             await unitOfWork.SaveChangesAsync();
         }
         public async Task<BasePaginatedList<PaymentDetailResponse>> GetAllPayments(int pageIndex, int pageSize, PaymentFilterRequest filter)
         {
-            var query = unitOfWork.GetRepository<Payment>().Entity.AsQueryable();
+            await unitOfWork.BeginTransactionAsync();  
+            try
+            {
+                var query = unitOfWork.GetRepository<Payment>().Entity.AsQueryable();
 
-            if (!string.IsNullOrEmpty(filter.UserId))
-            {
-                query = query.Where(x => x.UserId == filter.UserId);
-            }
-            if (filter.Status.HasValue)
-            {
-                query = query.Where(x => x.Status == filter.Status.Value);
-            }
-            if (filter.DateFrom.HasValue)
-            {
-                query = query.Where(x => x.CreatedAt >= filter.DateFrom.Value);
-            }
-            if (filter.DateTo.HasValue)
-            {
-                query = query.Where(x => x.CreatedAt <= filter.DateTo.Value);
-            }
-            if (!string.IsNullOrEmpty(filter.MembershipId))
-            {
-                query = query.Where(x => x.MembershipId == filter.MembershipId);
-            }
-            if (!string.IsNullOrEmpty(filter.OrderCode))
-            {
-                query = query.Where(x => x.OrderCode == filter.OrderCode);
-            }
-            if (!string.IsNullOrEmpty(filter.Email))
-            {
-                query = query.Where(x => x.User.Email == filter.Email);
-            }
-            query = query.Include(x => x.User).Include(x => x.Membership).OrderByDescending(x => x.CreatedAt);
+                if (!string.IsNullOrEmpty(filter.UserId))
+                {
+                    query = query.Where(x => x.UserId == filter.UserId);
+                }
+                if (filter.Status.HasValue)
+                {
+                    query = query.Where(x => x.Status == filter.Status.Value);
+                }
+                if (filter.DateFrom.HasValue)
+                {
+                    query = query.Where(x => x.CreatedAt >= filter.DateFrom.Value);
+                }
+                if (filter.DateTo.HasValue)
+                {
+                    query = query.Where(x => x.CreatedAt <= filter.DateTo.Value);
+                }
+                if (!string.IsNullOrEmpty(filter.MembershipId))
+                {
+                    query = query.Where(x => x.MembershipId == filter.MembershipId);
+                }
+                if (!string.IsNullOrEmpty(filter.OrderCode))
+                {
+                    query = query.Where(x => x.OrderCode == filter.OrderCode);
+                }
+                if (!string.IsNullOrEmpty(filter.Email))
+                {
+                    query = query.Where(x => x.User.Email == filter.Email);
+                }
+                query = query.Include(x => x.User).Include(x => x.Membership).OrderByDescending(x => x.CreatedAt);
 
-            var payments = await unitOfWork.GetRepository<Payment>()
-                .GetPagging(query, pageIndex, pageSize);
-            return mapper.Map<BasePaginatedList<PaymentDetailResponse>>(payments);
-        }     
+                var payments = await unitOfWork.GetRepository<Payment>()
+                    .GetPagging(query, pageIndex, pageSize);
+
+                await unitOfWork.CommitTransactionAsync();  
+
+                return mapper.Map<BasePaginatedList<PaymentDetailResponse>>(payments);
+            }
+            catch (Exception ex)
+            {
+                await unitOfWork.RollBackTransactionAsync(); 
+                _logger.LogError(ex, "Failed to get all payments");
+                throw;
+            }
+        }
     }
-    
+
 }

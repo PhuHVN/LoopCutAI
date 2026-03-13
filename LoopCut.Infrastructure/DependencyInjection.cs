@@ -1,4 +1,5 @@
 ﻿
+using LoopCut.Application.Interfaces;
 using LoopCut.Domain.Abstractions;
 using LoopCut.Domain.IRepository;
 using LoopCut.Infrastructure.Implemention;
@@ -18,6 +19,7 @@ namespace LoopCut.Infrastructure
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddScoped<SeederData>();
+            services.AddScoped<IPaymentRepository, PaymentRepository>();
             // DI for repositories
             services.AddScoped<IAccountRepository, AccountRepository>();
             services.AddScoped<IServicePlanRepository, ServicePlanRepository>();
