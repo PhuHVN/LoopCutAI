@@ -556,8 +556,8 @@ Project LoopCutAI được cấp phép dưới MIT License.
 
 ## 👥 Contributors
 
-- **Development Team**: FPTU SP26 EXE202
-
+- **PhuHVN**: [PhuHo](https://github.com/PhuHVN)
+- **Long9904**: [Long9904](https://github.com/Long9904)
 ---
 
 ## 📞 Liên Hệ & Hỗ Trợ
