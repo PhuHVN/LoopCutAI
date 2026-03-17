@@ -13,18 +13,18 @@ namespace LoopCut.Application.Services
     public class GeminiService : IGeminiService
     {
         private readonly HttpClient _httpClient;
-        private readonly string _apiKey;
+        private readonly IKeyService _keyService;
         private readonly IHandleChatService _handleChatService;
         private readonly IMemoryCache _cache;
         private readonly string _systemPrompt;
 
         public GeminiService(HttpClient httpClient, IConfiguration config,
-            IHandleChatService handleChatService, IMemoryCache cache)
+            IHandleChatService handleChatService, IMemoryCache cache, IKeyService keyService)
         {
             _httpClient = httpClient;
             _handleChatService = handleChatService;
             _cache = cache;
-            _apiKey = config["Gemini:ApiKey"]!;
+            _keyService = keyService;
             _systemPrompt = LoadSystemPrompt().GetAwaiter().GetResult();
         }
 
@@ -42,29 +42,48 @@ namespace LoopCut.Application.Services
 
         private async Task<string> CallGeminiAsync(string message)
         {
-            var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={_apiKey}";
-
-            var body = new
+            int maxRetries = 3;
+            for (int attempt = 1; attempt <= maxRetries; attempt++)
             {
-                systemInstruction = new { parts = new[] { new { text = _systemPrompt } } },
-                contents = new[] { new { role = "user", parts = new[] { new { text = message } } } }
-            };
+                string? apiKey = null;
+                try
+                {
+                    apiKey = await _keyService.GetApiKeyAsync();
+                    var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={apiKey}";
 
-            var response = await _httpClient.PostAsync(url,
-                new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json"));
+                    var body = new
+                    {
+                        systemInstruction = new { parts = new[] { new { text = _systemPrompt } } },
+                        contents = new[] { new { role = "user", parts = new[] { new { text = message } } } }
+                    };
 
-            var responseText = await response.Content.ReadAsStringAsync();
+                    var response = await _httpClient.PostAsync(url,
+                        new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json"));
 
-            if (!response.IsSuccessStatusCode)
-                throw new Exception("Gemini API Error: " + responseText);
+                    var responseText = await response.Content.ReadAsStringAsync();
 
-            using var doc = JsonDocument.Parse(responseText);
-            return doc.RootElement
-                .GetProperty("candidates")[0]
-                .GetProperty("content")
-                .GetProperty("parts")[0]
-                .GetProperty("text")
-                .GetString() ?? "";
+                    if (!response.IsSuccessStatusCode)
+                        throw new Exception("Gemini API Error: " + responseText);
+
+                    using var doc = JsonDocument.Parse(responseText);
+                    return doc.RootElement
+                        .GetProperty("candidates")[0]
+                        .GetProperty("content")
+                        .GetProperty("parts")[0]
+                        .GetProperty("text")
+                        .GetString() ?? "";
+                }
+                catch (Exception ex)
+                {
+                    if (attempt == maxRetries - 1)
+                    {
+                        return "Xin lỗi, mình đang gặp lỗi kỹ thuật. Vui lòng thử lại sau.";
+                    }
+
+                }
+            }
+            return "Tất cả tài nguyên hiện đang bận, bạn đợi chút rồi nhắn lại nhé!";
+
         }
 
         private async Task<string> ExecuteCommandAsync(AiCommand command)

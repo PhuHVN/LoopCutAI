@@ -183,7 +183,7 @@ namespace LoopCut.Application.Services
             {
                 return $"Bạn có thể kiểm tra lại email hoặc hỏi mình về các gói đăng ký có sẵn nha!";
             }
-            var response = $"Mình tìm thấy rồi! Đây là thông tin gói đăng ký của bạn:\n\n";
+            var response = $"Mình tìm thấy rồi! Đây là thông tin gói Subscription(đăng ký) của bạn:\n\n";
             foreach (var item in subscription.Items)
             {
                 response += $"- Tên gói đăng ký: {item.SubscriptionsName}\n" +

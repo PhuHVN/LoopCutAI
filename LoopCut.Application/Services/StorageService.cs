@@ -54,6 +54,10 @@ namespace LoopCut.Application.Services
             {
                 throw new ArgumentException("File is empty.");
             }
+            if (file.Length > 5 * 1024 * 1024)
+            {
+                throw new ArgumentException("File size exceeds the 5MB limit.");
+            }
             var uniqueFileName = $"loopcutai/{Guid.NewGuid()}_{file.FileName}";
             using var stream = file.OpenReadStream();
             var dataObject = await _storageClient.UploadObjectAsync(_bucketName, uniqueFileName, file.ContentType, stream);
