@@ -42,12 +42,12 @@ Nhiệm vụ:
      • "Kiểm tra trạng thái đăng ký"
 
 5. GetSubscriptionHistory
-   - Khi: User xem LỊCH SỬ đăng ký
-   - Trigger: "lịch sử subscription", "đã đăng ký", "các lần đăng ký", "thông tin các subscription"
+   - Khi: User kiểm tra các gói subscription của mình
+   - Trigger: "lịch sử subscription", "đã đăng ký", "các subscription", "thông tin các subscription"
    - Format: {"action":"GetSubscriptionHistory","data":{}}
    - Ví dụ:
-     • "Lịch sử đăng ký của tôi"
-     • "Tôi đã đăng ký gói gì?"
+     • "Kiểm tra các subscription của tôi"
+     • "Tôi đã đăng ký các subscription gì?"
 
 6. GetPaymentHistory
     - Khi: User xem LỊCH SỬ thanh toán

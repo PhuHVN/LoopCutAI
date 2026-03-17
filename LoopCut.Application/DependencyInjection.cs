@@ -26,6 +26,7 @@ namespace LoopCut.Application
             services.AddScoped<IHandleChatService, HandleChatService>();
             services.AddScoped<IStorageService, StorageService>();
             services.AddScoped<ILogService, LogService>();
+            services.AddScoped<IKeyService, KeyService>();
 
             services.AddValidatorsFromAssemblyContaining(typeof(DependencyInjection));
         }
