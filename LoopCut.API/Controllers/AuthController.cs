@@ -2,7 +2,6 @@
 using LoopCut.Application.DTOs.AccountDtos;
 using LoopCut.Application.DTOs.LoginDtos;
 using LoopCut.Application.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -19,11 +18,11 @@ namespace LoopCut.API.Controllers
         }
 
         [HttpPost("register")]
-        [SwaggerOperation(Summary ="Register a new user")]
+        [SwaggerOperation(Summary = "Register a new user")]
         public async Task<IActionResult> Register(AccountRequest request)
         {
             var result = await service.Register(request);
-            return Ok(ApiResponse<AccountResponse>.OkResponse(result, "Register succesful!", "200"));
+            return Ok(ApiResponse<string>.OkResponse(result, "Register succesful!", "200"));
         }
 
         [HttpPost("login")]
@@ -48,6 +47,13 @@ namespace LoopCut.API.Controllers
         {
             var result = await service.CurrentUser();
             return Ok(ApiResponse<AccountResponse>.OkResponse(result, "Current user fetched successfully!", "200"));
+        }
+        [HttpPost("verify-otp")]
+        [SwaggerOperation(Summary = "Verify OTP for email verification")]
+        public async Task<IActionResult> VerifyOtp(string email, string otp)
+        {
+            var result = await service.VerifyOtp(email, otp);
+            return Ok(ApiResponse<string>.OkResponse(result, "OTP verified successfully!", "200"));
         }
     }
 }

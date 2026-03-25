@@ -66,12 +66,12 @@ namespace LoopCut.Application.Services
 
             string baseUrl = !string.IsNullOrEmpty(request.ReturnUrlDomain)
                 ? request.ReturnUrlDomain : _configuration["PayOs:Url"]!;
-
+            var formatPrice = Math.Floor(membership.Price);
             var paymentRequest = new CreatePaymentLinkRequest
             {
                 OrderCode = orderCode,
                 Amount = (long)membership.Price,
-                Description = $"{membership.Name} with {membership.Price}VND",
+                Description = $"{membership.Name} with {formatPrice}VND",
                 ReturnUrl = $"{baseUrl}/payment/success",
                 CancelUrl = $"{baseUrl}/payment/cancel"
             };
@@ -174,6 +174,7 @@ namespace LoopCut.Application.Services
                 {
                     case "00":
                         await UpdatePaymentWithTransaction(existingPayment, PaymentStatusEnum.Completed);
+                        //send email to user
                         _logger.LogInformation("Payment completed for OrderCode: {OrderCode}", data.OrderCode);
                         break;
                     case "01":

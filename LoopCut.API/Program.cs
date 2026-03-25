@@ -1,5 +1,3 @@
-using System.Security.Claims;
-using System.Text.Json;
 using AutoMapper;
 using FluentValidation.AspNetCore;
 using LoopCut.API;
@@ -17,6 +15,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.OpenApi.Models;
+using StackExchange.Redis;
+using System.Security.Claims;
+using System.Text.Json;
 var builder = WebApplication.CreateBuilder(args);
 
 //convert enum to string in json
@@ -178,6 +179,28 @@ var mapperConfig = new MapperConfiguration(cfg =>
 });
 IMapper mapper = mapperConfig.CreateMapper();
 builder.Services.AddSingleton(mapper);
+//Redis Cache
+var redisConfig = builder.Configuration.GetSection("Redis");
+
+builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
+{
+    var host = redisConfig["Host"];
+    var port = redisConfig["Port"] ?? "6379";
+    var password = redisConfig["Token"];
+
+    var options = new ConfigurationOptions
+    {
+        EndPoints = { { host!, int.Parse(port) } },
+        Password = password,
+        Ssl = true,
+        AbortOnConnectFail = false,
+        ConnectTimeout = 10000,
+        SyncTimeout = 10000,
+        KeepAlive = 30
+    };
+
+    return ConnectionMultiplexer.Connect(options);
+});
 //read env
 DotNetEnv.Env.Load();
 //Register Gemini Service
