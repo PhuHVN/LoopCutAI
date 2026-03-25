@@ -7,7 +7,6 @@ using LoopCut.Domain.Abstractions;
 using LoopCut.Domain.Entities;
 using LoopCut.Domain.Enums;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -24,14 +23,18 @@ namespace LoopCut.Application.Services
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _http;
         private readonly ILogService _logService;
+        private readonly IOtpService _otpService;
+        private readonly IEmailService _emailService;
 
-        public AuthService(IUnitOfWork unitOfWork, IConfiguration configuration, IMapper mapper, IHttpContextAccessor http, ILogService logService)
+        public AuthService(IUnitOfWork unitOfWork, IConfiguration configuration, IMapper mapper, IHttpContextAccessor http, ILogService logService, IOtpService otpService, IEmailService emailService)
         {
             _unitOfWork = unitOfWork;
             _configuration = configuration;
             _mapper = mapper;
             _http = http;
             _logService = logService;
+            _otpService = otpService;
+            _emailService = emailService;
         }
 
         public async Task<string> GenerateJwtToken(Accounts accounts)
@@ -107,13 +110,22 @@ namespace LoopCut.Application.Services
             {
                 throw new ArgumentException("Google ID token is required", nameof(login.IdToken));
             }
+            var clientId = _configuration["Authentication:Google:ClientId"];
+            if (clientId == null)
+            {
+                throw new InvalidOperationException("Google Client ID is not configured. Please contact support.");
+            }
             try
             {
                 var payload = await GoogleJsonWebSignature.ValidateAsync(login.IdToken,
                     new GoogleJsonWebSignature.ValidationSettings
                     {
-                        Audience = new[] { _configuration["Authentication:Google:ClientId"] }
+                        Audience = new[] { clientId }
                     });
+                if (payload == null)
+                {
+                    throw new UnauthorizedAccessException("Invalid Google ID token.");
+                }
                 var email = payload.Email;
                 var fullName = payload.Name;
                 var existingAccount = await _unitOfWork.GetRepository<Accounts>()
@@ -134,13 +146,22 @@ namespace LoopCut.Application.Services
                     Token = await GenerateJwtToken(existingAccount),
                 };
             }
-            catch (AuthenticationException e)
+            catch (InvalidJwtException ex)
             {
-                throw new UnauthorizedAccessException("Error during Google login", e);
+
+                throw new UnauthorizedAccessException("Invalid authentication token", ex);
+            }
+            catch (AuthenticationException ex)
+            {
+                throw new UnauthorizedAccessException("Google authentication failed", ex);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
-                throw new Exception("Error during Google login", ex);
+                throw;
             }
         }
 
@@ -160,7 +181,7 @@ namespace LoopCut.Application.Services
             return _mapper.Map<AccountResponse>(user);
         }
 
-        public async Task<AccountResponse> Register(AccountRequest account)
+        public async Task<string> Register(AccountRequest account)
         {
             var existingAccount = await _unitOfWork.GetRepository<Accounts>()
                 .FindAsync(a => a.Email == account.Email && a.Status == StatusEnum.Active);
@@ -187,9 +208,9 @@ namespace LoopCut.Application.Services
                     PhoneNumber = account.PhoneNumber,
                     CreatedAt = DateTime.UtcNow,
                     Role = RoleEnum.User,
-                    Status = StatusEnum.Active
+                    Status = StatusEnum.Inactive
                 };
-            
+
                 await _unitOfWork.GetRepository<Accounts>().InsertAsync(newAccount);
                 await _unitOfWork.SaveChangesAsync();
                 // Assign basic membership to the new account
@@ -210,7 +231,11 @@ namespace LoopCut.Application.Services
                     oldValues: (object?)null
                     );
                 await _unitOfWork.CommitTransactionAsync();
-                return _mapper.Map<AccountResponse>(newAccount);
+                //otp
+                var otp = _otpService.GenerateOTP();
+                await _otpService.StoreOtpAsync(account.Email, otp, TimeSpan.FromMinutes(5));
+                await _emailService.SendRegistrationOtpEmailAsync(account.Email, otp);
+                return "Registration successful. Please check your email for the OTP.";
             }
             catch (Exception ex)
             {
@@ -218,6 +243,35 @@ namespace LoopCut.Application.Services
                 throw new Exception("Error during registration", ex);
 
             }
+        }
+
+        public async Task<string> VerifyOtp(string email, string otp)
+        {
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(otp))
+            {
+                throw new ArgumentException("Email and OTP must be provided.");
+            }
+            var cachedOtp = await _otpService.RetrieveOtpAsync(email);
+            if (cachedOtp == null)
+            {
+                throw new ArgumentException("Invalid or expired OTP.");
+            }
+            if (cachedOtp != otp)
+            {
+                throw new ArgumentException("Invalid OTP.");
+            }
+            await _otpService.RemoveOtpAsync(email);
+            var user = await _unitOfWork.GetRepository<Accounts>()
+                .FindAsync(x => x.Email == email && x.Status == StatusEnum.Inactive);
+            if (user == null)
+            {
+                throw new ArgumentException("User not found or already verified.");
+            }
+            user.Status = StatusEnum.Active;
+            await _unitOfWork.GetRepository<Accounts>().UpdateAsync(user);
+            await _unitOfWork.SaveChangesAsync();
+            return "OTP verified successfully.";
+
         }
     }
 }

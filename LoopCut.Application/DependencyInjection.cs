@@ -27,6 +27,7 @@ namespace LoopCut.Application
             services.AddScoped<IStorageService, StorageService>();
             services.AddScoped<ILogService, LogService>();
             services.AddScoped<IKeyService, KeyService>();
+            services.AddScoped<IOtpService, OtpService>();
 
             services.AddValidatorsFromAssemblyContaining(typeof(DependencyInjection));
         }

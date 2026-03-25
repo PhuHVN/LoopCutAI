@@ -27,6 +27,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="payOS" Version="2.0.1" />
+    <PackageReference Include="StackExchange.Redis" Version="2.12.4" />
   </ItemGroup>
 
   <ItemGroup>

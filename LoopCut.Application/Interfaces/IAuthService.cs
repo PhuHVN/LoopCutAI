@@ -13,7 +13,8 @@ namespace LoopCut.Application.Interfaces
     {
         Task<AuthResponse> LoginEmail(LoginRequest login);
         Task<AuthResponse> LoginGoogle(LoginGoogleRequest login);
-        Task<AccountResponse> Register(AccountRequest account);
+        Task<string> Register(AccountRequest account);
         Task<AccountResponse> CurrentUser();
+        Task<string> VerifyOtp(string email, string otp);
     }
 }
