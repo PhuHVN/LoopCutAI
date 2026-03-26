@@ -3,6 +3,7 @@ using LoopCut.Application.DTOs.AccountDtos;
 using LoopCut.Application.DTOs.LoginDtos;
 using LoopCut.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace LoopCut.API.Controllers
@@ -18,6 +19,7 @@ namespace LoopCut.API.Controllers
         }
 
         [HttpPost("register")]
+        [EnableRateLimiting("SendOTP")]
         [SwaggerOperation(Summary = "Register a new user")]
         public async Task<IActionResult> Register(AccountRequest request)
         {
@@ -55,5 +57,14 @@ namespace LoopCut.API.Controllers
             var result = await service.VerifyOtp(email, otp);
             return Ok(ApiResponse<string>.OkResponse(result, "OTP verified successfully!", "200"));
         }
+        //test rate limit
+        [HttpPost("test-rate-limit")]
+        [EnableRateLimiting("SendOTP")]
+        public IActionResult TestRateLimit([FromQuery] string email)
+        {
+            // Access via request.Email
+            return Ok(ApiResponse<string>.OkResponse($"Test for {email}", "Success", "200"));
+        }
+        
     }
 }

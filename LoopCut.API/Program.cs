@@ -18,6 +18,7 @@ using Microsoft.OpenApi.Models;
 using StackExchange.Redis;
 using System.Security.Claims;
 using System.Text.Json;
+using System.Threading.RateLimiting;
 var builder = WebApplication.CreateBuilder(args);
 
 //convert enum to string in json
@@ -171,6 +172,8 @@ builder.Services.AddAuthentication(options =>
         }
     };
 });
+//Rate Limiting
+builder.Services.AddRateLimiting();
 
 //config AutoMapper
 var mapperConfig = new MapperConfiguration(cfg =>
@@ -251,10 +254,12 @@ using (var scope = app.Services.CreateScope())
     await seeder.SeedBasicMembershipAsync();
 }
 
+
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.UseAuthentication();
+app.UseRateLimiter();
 app.UseAuthorization();
 
 app.MapControllers();

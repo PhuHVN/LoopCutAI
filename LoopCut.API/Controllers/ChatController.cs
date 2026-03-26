@@ -3,6 +3,7 @@ using LoopCut.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace LoopCut.API.Controllers
 {
@@ -17,6 +18,7 @@ namespace LoopCut.API.Controllers
             _geminiService = geminiService;
         }
         [HttpPost("send-message")]
+        //[EnableRateLimiting("ChatMessage")]
         public async Task<IActionResult> SendMessage([FromBody] ChatRequest message)
         {
             try

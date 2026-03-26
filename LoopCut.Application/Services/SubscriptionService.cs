@@ -89,8 +89,12 @@ namespace LoopCut.Application.Services
         public async Task<SubscriptionResponseV1> DeleteSubscriptionByUserAsync(string id)
         {
             var user = await _userService.GetCurrentUserLoginAsync();
-            // Find the subscription by id
-            var subscription = await _unitOfWork.SubscriptionRepository.GetByIdAsync(id);
+            // Find the subscription by id with ServicePlan and ServiceDefinition included
+            var subscription = await _unitOfWork.SubscriptionRepository.Entity
+                .Include(s => s.ServicePlan)
+                .ThenInclude(sp => sp.ServiceDefinition)
+                .FirstOrDefaultAsync(s => s.Id == id);
+            
             if (subscription == null)
             {
                 throw new KeyNotFoundException("Subscription not found.");
@@ -277,7 +281,11 @@ namespace LoopCut.Application.Services
                 throw new ArgumentException("Subscription name must be provided.", nameof(name));
             }
             var user = await _userService.GetCurrentUserLoginAsync();
-            var sub = await _unitOfWork.GetRepository<Subscriptions>().FindAsync(s => s.SubscriptionsName == name && s.AccountId == user.Id && s.Status != SubscriptionEnums.Inactive);
+            var sub = await _unitOfWork.SubscriptionRepository.Entity
+                .Include(s => s.ServicePlan)
+                .ThenInclude(sp => sp.ServiceDefinition)
+                .FirstOrDefaultAsync(s => s.SubscriptionsName == name && s.AccountId == user.Id && s.Status != SubscriptionEnums.Inactive);
+            
             if (sub == null)
             {
                 throw new KeyNotFoundException("Subscription not found.");
@@ -300,8 +308,12 @@ namespace LoopCut.Application.Services
         public async Task<SubscriptionResponseV1> CancelSubscriptionAsync(string id)
         {
             var user = await _userService.GetCurrentUserLoginAsync();
-            // Find the subscription by id
-            var subscription = await _unitOfWork.SubscriptionRepository.GetByIdAsync(id);
+            // Find the subscription by id with ServicePlan and ServiceDefinition included
+            var subscription = await _unitOfWork.SubscriptionRepository.Entity
+                .Include(s => s.ServicePlan)
+                .ThenInclude(sp => sp.ServiceDefinition)
+                .FirstOrDefaultAsync(s => s.Id == id);
+            
             if (subscription == null)
             {
                 throw new KeyNotFoundException("Subscription not found.");
@@ -396,7 +408,11 @@ namespace LoopCut.Application.Services
         public async Task<SubscriptionResponseV1> UpdateSubscriptionByUserLoginAsync(string id, SubscriptionRequest subscriptionRequest)
         {
             var user = await _userService.GetCurrentUserLoginAsync();
-            var subscription = await _unitOfWork.SubscriptionRepository.GetByIdAsync(id);
+            var subscription = await _unitOfWork.SubscriptionRepository.Entity
+                .Include(s => s.ServicePlan)
+                .ThenInclude(sp => sp.ServiceDefinition)
+                .FirstOrDefaultAsync(s => s.Id == id);
+            
             if (subscription == null || subscription.Status == SubscriptionEnums.Inactive)
             {
                 throw new KeyNotFoundException("Subscription not found.");

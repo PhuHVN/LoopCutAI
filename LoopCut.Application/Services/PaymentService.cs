@@ -161,6 +161,22 @@ namespace LoopCut.Application.Services
                     return false;
                 }
 
+                // Load Payment with Membership to avoid N+1 query later
+                if (existingPayment.Membership == null)
+                {
+                    existingPayment = await unitOfWork.GetRepository<Payment>().FindAsync(
+                        x => x.OrderCode == orderCodeStr,
+                        include: q => q.Include(p => p.Membership)
+                    );
+                    
+                    if (existingPayment == null)
+                    {
+                        _logger.LogWarning("Payment not found after reload for OrderCode: {OrderCode}", data.OrderCode);
+                        await unitOfWork.RollBackTransactionAsync();
+                        return false;
+                    }
+                }
+
                 if (existingPayment.Status == PaymentStatusEnum.Completed ||
                     existingPayment.Status == PaymentStatusEnum.Failed)
                 {
