@@ -6,6 +6,7 @@ using LoopCut.Domain.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using PayOS.Models.Webhooks;
 using PayOS.Resources.Webhooks;
 using Swashbuckle.AspNetCore.Annotations;
@@ -24,6 +25,8 @@ namespace LoopCut.API.Controllers
             this.payment = payment;
         }
         [HttpPost("create_payment_link")]
+        [Authorize]
+        [EnableRateLimiting("CreatePayment")]
         [SwaggerOperation(Summary = "Create a payment link for a membership purchase.")]
         public async Task<IActionResult> CreatePaymentLink([FromBody] CreatePaymentRequest request)
         {
@@ -31,6 +34,7 @@ namespace LoopCut.API.Controllers
             return Ok(result);
         }
         [HttpPost("webhook")]
+        [EnableRateLimiting("WebhookLimit")]
         [SwaggerOperation(Summary = "[DON''T USE THIS API] Handle payment webhook notifications from PayOS.")]
         public async Task<IActionResult> Webhook([FromBody] Webhook body)
         {
