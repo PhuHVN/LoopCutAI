@@ -10,14 +10,14 @@ namespace LoopCut.Domain.Abstractions
     public interface IGenericRepository <T> where T : class
     {
         IQueryable<T> Entity { get; }
-        Task<T?> FindByConditionAsync(Expression<Func<T, bool>> predicate);
+        Task<T?> FindByConditionAsync(Expression<Func<T, bool>> predicate, Func<IQueryable<T>, IQueryable<T>>? include = null);
         Task<IList<T>> GetAllAsync(Func<IQueryable<T>, IQueryable<T>>? include = null);
-        Task<T?> GetByIdAsync(object id);
+        Task<T?> GetByIdAsync(object id, Func<IQueryable<T>, IQueryable<T>>? include = null);
         Task InsertAsync(T entity);
-        Task<T> UpdateAsync(T entity);
+        Task<T> UpdateAsync(T entity, Func<IQueryable<T>, IQueryable<T>>? include = null);
         Task DeleteAsync(object id);
         Task<T?> FindAsync(Expression<Func<T, bool>> predicate, Func<IQueryable<T>, IQueryable<T>>? include = null);
-        Task<IList<T>> FilterByAsync(Expression<Func<T, bool>> predicate);
+        Task<IList<T>> FilterByAsync(Expression<Func<T, bool>> predicate, Func<IQueryable<T>, IQueryable<T>>? include = null);
         Task<BasePaginatedList<T>> GetPagging(IQueryable<T> query, int index, int pageSize);
         IQueryable<T> GetQueryable();
         Task DeleteRangeAsync(IEnumerable<T> entities);

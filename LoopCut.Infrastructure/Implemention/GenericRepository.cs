@@ -31,9 +31,12 @@ namespace LoopCut.Infrastructure.Implemention
             }
         }
 
-        public async Task<IList<T>> FilterByAsync(Expression<Func<T, bool>> predicate)
+        public async Task<IList<T>> FilterByAsync(Expression<Func<T, bool>> predicate, Func<IQueryable<T>, IQueryable<T>>? include = null)
         {
-            return await _dbSet.Where(predicate).ToListAsync();
+            IQueryable<T> query = _dbSet.Where(predicate);
+            if (include != null)
+                query = include(query);
+            return await query.ToListAsync();
         }
 
         public async Task<IList<T>> GetAllAsync(
@@ -57,15 +60,29 @@ namespace LoopCut.Infrastructure.Implemention
             return await query.FirstOrDefaultAsync(predicate);
         }
 
-        public async Task<T?> FindByConditionAsync(Expression<Func<T, bool>> predicate)
+        public async Task<T?> FindByConditionAsync(Expression<Func<T, bool>> predicate, Func<IQueryable<T>, IQueryable<T>>? include = null)
         {
-            return await _dbSet.FirstOrDefaultAsync(predicate);
+            IQueryable<T> query = _dbSet;
+            if (include != null)
+                query = include(query);
+            return await query.FirstOrDefaultAsync(predicate);
         }
 
-        public Task<T?> GetByIdAsync(object id)
+        public async Task<T?> GetByIdAsync(object id, Func<IQueryable<T>, IQueryable<T>>? include = null)
         {
-            var entity = _dbSet.FindAsync(id);
-            return entity.AsTask();
+            var entity = await _dbSet.FindAsync(id);
+            if (entity == null)
+                return null;
+            
+            // If include is provided, we need to reload with includes
+            if (include != null)
+            {
+                var id_value = _context.Entry(entity).Property("Id").CurrentValue;
+                IQueryable<T> query = _dbSet;
+                query = include(query);
+                entity = await query.FirstOrDefaultAsync(e => EF.Property<object>(e, "Id").Equals(id_value));
+            }
+            return entity;
         }
 
         public async Task InsertAsync(T entity)
@@ -73,10 +90,21 @@ namespace LoopCut.Infrastructure.Implemention
             await _dbSet.AddAsync(entity);           
         }
 
-        public async Task<T> UpdateAsync(T entity)
+        public async Task<T> UpdateAsync(T entity, Func<IQueryable<T>, IQueryable<T>>? include = null)
         {
             var id = _context.Entry(entity).Property("Id").CurrentValue;
-            var exist = await _dbSet.FindAsync(id);
+            
+            T? exist;
+            if (include != null)
+            {
+                IQueryable<T> query = _dbSet;
+                query = include(query);
+                exist = await query.FirstOrDefaultAsync(e => EF.Property<object>(e, "Id").Equals(id));
+            }
+            else
+            {
+                exist = await _dbSet.FindAsync(id);
+            }
 
             if (exist == null)
             {
