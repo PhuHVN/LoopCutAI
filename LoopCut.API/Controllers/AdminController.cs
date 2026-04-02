@@ -134,25 +134,24 @@ namespace LoopCut.API.Controllers
         {
             try
             {
-                var payments = await _paymentService.GetAllPayments(1, 1);
-                var accounts = await _accountService.GetAllAccounts(1, 1);
-                var subscriptions = await _subscriptionService.GetAllSubscriptionsByUserLoginAsync(1, 1);
-                var logs = await _logService.GetLogsByFilterAsync(1, 1, null);
+                var payments = await _paymentService.GetAllPayments(1, 10, null);
+                var accounts = await _accountService.GetAllAccounts(1, 10);
+                var subscriptions = await _subscriptionService.GetAllSubscriptionsByUserLoginAsync(1, 10);
+                var logs = await _logService.GetLogsByFilterAsync(1, 10, null);
 
-                var statistics = new
+               var  statistics = new
                 {
-                    totalPayments = payments?.TotalCount ?? 0,
-                    totalAccounts = accounts?.TotalCount ?? 0,
-                    totalSubscriptions = subscriptions?.TotalCount ?? 0,
-                    totalLogs = logs?.TotalCount ?? 0,
-                    timestamp = DateTime.UtcNow
+                    TotalPayments = payments.TotalItems,
+                    TotalAccounts = accounts.TotalPages,
+                    TotalSubscriptions = subscriptions.TotalItems,
+                    TotalLogs = logs.TotalItems
                 };
 
                 return Ok(ApiResponse<object>.OkResponse(statistics, "Dashboard statistics retrieved successfully!", "200"));
             }
             catch (Exception ex)
             {
-                return BadRequest(ApiResponse<object>.BadResponse("Error retrieving dashboard statistics: " + ex.Message, "400"));
+                return BadRequest(ApiResponse<object>.BadRequestResponse("Error retrieving dashboard statistics: " + ex.Message));
             }
         }
     }
