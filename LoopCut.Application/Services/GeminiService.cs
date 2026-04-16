@@ -63,27 +63,32 @@ namespace LoopCut.Application.Services
                     var responseText = await response.Content.ReadAsStringAsync();
 
                     if (!response.IsSuccessStatusCode)
+                    {                       
                         throw new Exception("Gemini API Error: " + responseText);
+                    }
 
                     using var doc = JsonDocument.Parse(responseText);
-                    return doc.RootElement
+                    var rawResponse = doc.RootElement
                         .GetProperty("candidates")[0]
                         .GetProperty("content")
                         .GetProperty("parts")[0]
                         .GetProperty("text")
                         .GetString() ?? "";
+
+
+                    rawResponse = System.Text.RegularExpressions.Regex.Replace(rawResponse, @"---?\s*\[SYSTEM CONTEXT:.*?\]\s*---?", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Singleline).Trim();
+
+                    return rawResponse;
                 }
                 catch (Exception ex)
                 {
-                    if (attempt == maxRetries - 1)
+                    if (attempt == maxRetries)
                     {
                         return "Xin lỗi, mình đang gặp lỗi kỹ thuật. Vui lòng thử lại sau.";
                     }
-
                 }
             }
             return "Tất cả tài nguyên hiện đang bận, bạn đợi chút rồi nhắn lại nhé!";
-
         }
 
         private async Task<string> ExecuteCommandAsync(AiCommand command)
@@ -115,21 +120,27 @@ namespace LoopCut.Application.Services
             {
                 return cachedResponse;
             }
-            //call Gemini API
             var reply = await CallGeminiAsync(message);
-            Console.WriteLine($"Raw reply: {reply}");
-            if (!reply.Trim().StartsWith("{"))
-                return "Mình chỉ hỗ trợ các vấn đề về subscription/membership.";
+
+            if (string.IsNullOrWhiteSpace(reply))
+            {
+                return "Xin lỗi, mình đang gặp lỗi kỹ thuật. Vui lòng thử lại sau.";
+            }
+            var cleanedReply = System.Text.RegularExpressions.Regex.Replace(reply, @"^[^{]*", "").Trim();
+
+            if (string.IsNullOrWhiteSpace(cleanedReply))
+            {             
+                return "Xin lỗi, mình đang gặp lỗi kỹ thuật. Vui lòng thử lại sau.";
+            }
 
             AiCommand? command;
             try
             {
-                var cleanJson = CleanJson(reply);
+                var cleanJson = ExtractFirstJson(cleanedReply);
                 command = JsonSerializer.Deserialize<AiCommand>(cleanJson);
             }
             catch (JsonException ex)
             {
-                Console.WriteLine($"[ERROR] {ex.Message}");
                 return "Xin lỗi, mình đang gặp lỗi kỹ thuật. Vui lòng thử lại sau.";
             }
 
@@ -141,6 +152,7 @@ namespace LoopCut.Application.Services
 
             return result;
         }
+
         private string? TryQuickResponse(string message)
         {
             var lower = message.ToLower().Trim();
@@ -157,18 +169,26 @@ namespace LoopCut.Application.Services
             return null;
         }
 
-        private static string CleanJson(string reply)
+        private static string ExtractFirstJson(string text)
         {
-            if (string.IsNullOrWhiteSpace(reply))
-                return reply;
-
-            var text = reply.Trim();
+            if (string.IsNullOrWhiteSpace(text))
+                return text;
 
             int start = text.IndexOf('{');
-            int end = text.LastIndexOf('}');
+            if (start == -1) return text;
 
-            if (start >= 0 && end > start)
-                return text.Substring(start, end - start + 1);
+            int braceCount = 0;
+
+            for (int i = start; i < text.Length; i++)
+            {
+                if (text[i] == '{') braceCount++;
+                else if (text[i] == '}') braceCount--;
+
+                if (braceCount == 0)
+                {
+                    return text.Substring(start, i - start + 1);
+                }
+            }
 
             return text;
         }
