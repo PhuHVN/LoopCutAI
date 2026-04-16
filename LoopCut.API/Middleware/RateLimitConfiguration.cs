@@ -31,7 +31,7 @@ namespace LoopCut.API.Middleware
                         partitionKey: partitionKey!,
                         factory: _ => new SlidingWindowRateLimiterOptions
                         {
-                            PermitLimit = 1,
+                            PermitLimit = 10,
                             Window = TimeSpan.FromMinutes(1),
                             SegmentsPerWindow = 4,
                             QueueLimit = 0
