@@ -152,6 +152,7 @@ namespace LoopCut.Application.Services
 
             return result;
         }
+
         private string? TryQuickResponse(string message)
         {
             var lower = message.ToLower().Trim();
